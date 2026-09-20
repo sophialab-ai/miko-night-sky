@@ -30,14 +30,14 @@
 <meta name="twitter:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 <meta name="twitter:image" content=""><!-- ← 公開URL + /assets/images/ogp-miko-night-sky.jpg -->
 <!-- ================================================== -->
-<link rel="stylesheet" href="styles.css?v=53">
+<link rel="stylesheet" href="styles.css?v=57">
 <!-- 導入予告アニメーション（質問が始まる前に一度だけ流す） -->
-<link rel="stylesheet" href="intro.css?v=53">
+<link rel="stylesheet" href="intro.css?v=57">
 </head>
 <body>
 
 <!-- 開発用：いま読み込まれている画面の版（仮モードのときだけ出ます） -->
-<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v53</div>
+<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v57</div>
 
 <!-- 夜空（背景の色。画像が出るまでの下地） -->
 <div id="sky-bg" aria-hidden="true"></div>
@@ -98,7 +98,8 @@
     <div class="panel panel--text">
       <h2 class="panel-title">あなたが書いた言葉について</h2>
       <p>入力した内容は、運営側には送られません。<br>この体験の中で使い、最後にあなた自身のPDFとして持ち帰ることができます。</p>
-      <p>体験をよりよくするため、<br>「どこまで進んだか」<br>「PDFを作ったか」<br>など、回答内容を含まない利用状況だけを記録します。</p>
+      <p>運営側に記録されるのは、<br>アクセスコードが使われたこと（日時と回数）<br>だけです。</p>
+      <p>何を書いたか、どこまで進んだかは、<br>運営側には分かりません。</p>
       <div class="btn-row">
         <button type="button" class="btn btn--quiet" id="btn-privacy-back">戻る</button>
         <button type="button" class="btn btn--primary" id="btn-privacy-next">つづける</button>
@@ -131,8 +132,7 @@
         <button type="button" class="btn btn--primary" id="btn-resume">途中から歩く</button>
         <button type="button" class="btn btn--quiet" id="btn-fresh">新しく歩きはじめる</button>
       </div>
-      <p class="note">「新しく歩きはじめる」を選ぶと、新しい1回がはじまります。<br>
-      ミコが夜空を歩くところは、いちばん最初の問いのあとに出てきます。</p>
+      <p class="note">「新しく歩きはじめる」を選ぶと、新しい1回がはじまります。</p>
     </div>
   </section>
 
@@ -242,7 +242,7 @@
       <div class="btn-row btn-row--single">
         <button type="button" class="btn btn--quiet" id="btn-forget">この端末に残っている回答を削除する</button>
       </div>
-      <p class="note">削除すると、この端末には何も残りません。<br>そのあとはPDFを作れなくなるので、先にPDFを保存してください。</p>
+      <p class="note">このアプリに保存されている回答や途中経過が、この端末から削除されます。<br>そのあとはPDFを作れなくなるので、先にPDFを保存してください。</p>
       <p id="end-message" class="code-message"></p>
     </div>
   </section>
@@ -280,13 +280,13 @@
 <!-- PDF用（印刷のときだけ表示される） -->
 <div id="print-root" aria-hidden="true"></div>
 
-<script src="js/config.js?v=53"></script>
-<script src="js/questions.js?v=53"></script>
-<script src="js/storage.js?v=53"></script>
-<script src="js/api.js?v=53"></script>
-<script src="js/ui.js?v=53"></script>
-<script src="js/pdf.js?v=53"></script>
-<script src="js/intro.js?v=53"></script>
-<script src="app.js?v=53"></script>
+<script src="js/config.js?v=57"></script>
+<script src="js/questions.js?v=57"></script>
+<script src="js/storage.js?v=57"></script>
+<script src="js/api.js?v=57"></script>
+<script src="js/ui.js?v=57"></script>
+<script src="js/pdf.js?v=57"></script>
+<script src="js/intro.js?v=57"></script>
+<script src="app.js?v=57"></script>
 </body>
 </html>

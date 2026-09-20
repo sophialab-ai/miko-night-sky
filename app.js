@@ -215,7 +215,12 @@ const App = {
       next();
       return;
     }
-    Intro.play().then(next);
+    Intro.play().then(function () {
+      /* 幕が下りているあいだにQ1を組み立てる。
+         フェードインを使うと、幕が上がる途中で下の夜空が見えてしまうため。 */
+      UI.nextScreenInstant = true;
+      next();
+    });
   },
 
   /* ================= 結晶の記録 ================= */

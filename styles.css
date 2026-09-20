@@ -507,6 +507,12 @@ body.is-final-sky .layer--road { opacity: 0.35; transition: opacity 1.2s var(--e
   animation: fadeIn 0.7s var(--ease);
 }
 
+/* 幕の裏で組み立てるときは、フェードインを使わずに即座に出す */
+.screen.is-active.no-fade {
+  animation: none;
+  opacity: 1;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
