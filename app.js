@@ -23,17 +23,42 @@ const App = {
     UI.setScene('overview');
 
     const saved = Storage.load();
+
+    /* 最初の画面は、フェードを使わずに組み立てる（下の revealApp で一度に出す） */
+    UI.nextScreenInstant = true;
+
     if (saved && !saved.completed) {
       this.session = saved;
       UI.setText('resume-where', '前回は「' + this.stepLabel(saved.currentStep) + '」まで進んでいます。');
       UI.showScreen('screen-resume');
-      return;
+    } else {
+      if (saved && saved.completed) {
+        /* 終わったセッションは残しておくが、画面は最初から */
+        this.session = saved;
+      }
+      UI.showScreen('screen-intro');
     }
-    if (saved && saved.completed) {
-      /* 終わったセッションは残しておくが、画面は最初から */
-      this.session = saved;
-    }
-    UI.showScreen('screen-intro');
+
+    this.revealApp();
+  },
+
+  /* 背景の絵がそろってから、画面を一度だけ表示する。
+     絵の読み込みが遅いときも、待ちすぎないように上限を置く。 */
+  revealApp: function () {
+    let shown = false;
+    const show = function () {
+      if (shown) return;
+      shown = true;
+      document.body.classList.remove('is-booting');
+    };
+
+    const probe = new Image();
+    probe.onload = show;
+    probe.onerror = show;
+    probe.src = 'assets/images/bg-sky-overview.png';
+    if (probe.complete) show();
+
+    setTimeout(show, 1500);
   },
 
   /* いまどこまで進んだかを、やさしい言葉で */

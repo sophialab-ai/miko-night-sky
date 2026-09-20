@@ -28,6 +28,21 @@ html, body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* ---------- 起動中（最初の画面が決まるまで） ---------- */
+/* URLを開いた直後に、背景や作りかけの画面が一瞬見えないよう、
+   最初の画面が決まるまでは何も描かずに待つ。 */
+body.is-booting {
+  background-color: #0b1030;
+}
+
+body.is-booting #sky-bg,
+body.is-booting .scene-image,
+body.is-booting #world,
+body.is-booting #flight-layer,
+body.is-booting #app {
+  visibility: hidden;
+}
+
 /* ---------- 夜空 ---------- */
 #sky-bg {
   position: fixed;
