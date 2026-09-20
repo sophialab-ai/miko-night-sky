@@ -10,11 +10,27 @@ const UI = {
   },
 
   /* ---------- 画面切り替え ---------- */
+  /* nextScreenInstant を true にしてから呼ぶと、その1回だけ
+     フェードインなしで即座に表示する（導入アニメの幕の裏で組み立てるため） */
+  nextScreenInstant: false,
+
   showScreen: function (id) {
+    const instant = this.nextScreenInstant;
+    this.nextScreenInstant = false;
+
     const screens = document.querySelectorAll('.screen');
     for (let i = 0; i < screens.length; i++) {
+      /* 前回の「フェードなし」はここで解除する。
+         表示中に外すと、その瞬間からフェードがやり直しになるため。 */
+      screens[i].classList.remove('no-fade');
       screens[i].classList.toggle('is-active', screens[i].id === id);
     }
+
+    if (instant) {
+      const el = this.el(id);
+      if (el) el.classList.add('no-fade');
+    }
+
     window.scrollTo(0, 0);
   },
 

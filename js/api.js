@@ -5,10 +5,10 @@
      送ってよいのは「アクセスコード」「sessionId」だけ。
 
    いまつないでいるGASの仕様（実際に確認したもの）
-     ・GETのみ（POSTは405で受け付けない）
-     ・?action=check&code=...         → {"ok":true,"valid":true/false,"reason":"...","remaining":n}
-     ・?action=start&code=...&session_id=...
-                                     → {"ok":true,"started":true/false,"reason":"...","remaining":n}
+     ・check / start は POST だけで受け付ける（アクセスコードをURLに載せないため）
+     ・GET は疎通確認だけ（{"ok":true,"message":"miko-night-sky"} を返す）
+     ・check  → {"ok":true,"valid":true/false,"reason":"...","remaining":n}
+     ・start  → {"ok":true,"started":true/false,"resumed":true/false,"reason":"...","remaining":n}
      ・event（利用状況の記録）は、まだ受け付けない（invalid_action が返る）
 */
 
@@ -37,10 +37,15 @@ function buildParams(obj) {
   return out.join('&');
 }
 
-/* GASはGETだけを受け付けるので、問い合わせはすべてGETで送る */
-function gasGet(params) {
-  return fetch(GAS_URL + '?' + buildParams(params), {
-    method: 'GET',
+/* 問い合わせはすべてPOSTで送る。
+   アクセスコードや session_id はURLに出ず、本文に入る。
+   フォーム形式（x-www-form-urlencoded）にしているのは、
+   ブラウザの事前確認（preflight）を起こさず、GAS側が e.parameter で読めるため。 */
+function gasPost(params) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: buildParams(params),
     redirect: 'follow'
   }).then(function (res) {
     return res.json();
@@ -63,7 +68,7 @@ const Api = {
   checkCode: function (code) {
     if (!GAS_URL) return Promise.resolve({ ok: false, reason: 'not_configured' });
 
-    return gasGet({ action: 'check', code: code }).then(function (json) {
+    return gasPost({ action: 'check', code: code }).then(function (json) {
       if (!json || json.ok !== true) return { ok: false, reason: 'network' };
       if (json.valid !== true) return { ok: false, reason: 'invalid' };
       return {
@@ -81,7 +86,7 @@ const Api = {
   startSession: function (code, sessionId) {
     if (!GAS_URL) return Promise.resolve({ ok: false, reason: 'not_configured' });
 
-    return gasGet({ action: 'start', code: code, session_id: sessionId }).then(function (json) {
+    return gasPost({ action: 'start', code: code, session_id: sessionId }).then(function (json) {
       if (!json || json.ok !== true) return { ok: false, reason: 'network' };
 
       if (json.started !== true) {
@@ -107,7 +112,7 @@ const Api = {
   logEvent: function (code, sessionId, eventName) {
     if (!GAS_URL || !SEND_EVENTS) return Promise.resolve({ ok: true, skipped: true });
 
-    return gasGet({
+    return gasPost({
       action: 'event',
       code: code,
       session_id: sessionId,

@@ -49,16 +49,24 @@ const Intro = {
     /* 何度でも見られるように、いったんアニメーションを外してから付け直す */
     box.classList.remove('is-playing');
     void box.offsetWidth;
+
+    /* 幕は「すぐ」おろす。
+       ゆっくり出すと、その0.5秒のあいだ前の画面が透けて見えてしまうため。
+       （閉じるときのフェードは、下でCSSに戻します） */
+    box.style.transition = 'none';
     box.classList.add('is-playing');
+    void box.offsetWidth;
+    box.style.transition = '';
 
     return new Promise(function (resolve) {
       setTimeout(function () {
-        /* 最後の絵を少しだけ残してから、静かに消す */
+        /* 幕をおろしたまま、先に次の画面へ進んでもらう。
+           そのあと幕を上げるので、前の画面が見えることがない。 */
+        resolve();
         setTimeout(function () {
           box.classList.remove('is-playing');
-          setTimeout(resolve, 500);
-        }, 600);
-      }, self.DURATION);
+        }, 80);
+      }, self.DURATION + 600);
     });
   },
 
