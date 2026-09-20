@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>導入予告アニメーション（試作）</title>
+<link rel="stylesheet" href="intro.css">
+<style>
+  /* この確認ページだけのスタイル（本編には関係ありません） */
+  html, body {
+    margin: 0;
+    min-height: 100dvh;
+    background: #0a0a2c;
+    color: #eef0ff;
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .replay {
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 200;
+    min-height: 52px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 200, 255, 0.45);
+    background: rgba(140, 152, 235, 0.42);
+    color: #eef0ff;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .note {
+    max-width: 320px;
+    padding: 0 20px;
+    text-align: center;
+    line-height: 1.9;
+    font-size: 0.9rem;
+    color: #b9bfe0;
+  }
+</style>
+</head>
+<body>
+
+<p class="note">
+  導入予告アニメーション（試作）<br>
+  ボタンを押すと再生します。
+</p>
+
+<button type="button" class="replay" id="btn-replay">もう一度見る</button>
+
+<script src="js/intro.js"></script>
+<script>
+  const btn = document.getElementById('btn-replay');
+
+  function run() {
+    btn.disabled = true;
+    Intro.play().then(function () { btn.disabled = false; });
+  }
+
+  btn.addEventListener('click', run);
+  window.addEventListener('DOMContentLoaded', function () { setTimeout(run, 400); });
+</script>
+
+</body>
+</html>

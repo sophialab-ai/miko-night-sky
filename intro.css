@@ -1,0 +1,258 @@
+/* intro.css  導入予告アニメーション（試作・これだけで完結します）
+
+   絵に合わせた組み立て：
+     miko-main  … 手ぶらで立っている
+     miko-pick  … 右下へ手を伸ばし、結晶に触れている（結晶は絵の中にある）
+     miko-back  … 手ぶらの後ろ姿
+     miko-place … 手のひらの上に結晶が浮かんでいる（結晶は絵の中にある）
+
+   そこで、
+     「結晶が手元へ来た瞬間に miko-main → miko-pick へ入れ替える」＝ 拾った
+     「miko-place の絵の結晶と同じ位置から crystal.png が離れ、足元（光の道の麓）へ下りる」＝ 置いた
+   という見せ方にしています。動かしているのは opacity と transform だけです。 */
+
+#intro-preview-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  background: #0a0a2c;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+#intro-preview-animation.is-playing { opacity: 1; }
+
+/* ---------- 背景 ---------- */
+.intro-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+}
+
+.intro-bg--pickup   { background-image: url("./assets/images/bg-pickup-scene.png"); }
+.intro-bg--overview { background-image: url("./assets/images/bg-sky-overview.png"); }
+
+/* ---------- ミコ ---------- */
+.intro-miko {
+  position: absolute;
+  opacity: 0;
+}
+
+/* 拾う場面：スマホ390px幅で、画面幅の72% */
+.intro-miko--main,
+.intro-miko--pick {
+  left: 50%;
+  bottom: 12vh;
+  width: 72vw;
+  max-width: 420px;
+  transform: translateX(-50%);
+}
+
+/* 夜空全体：小さく */
+.intro-miko--back,
+.intro-miko--back2,
+.intro-miko--place {
+  left: 44%;
+  bottom: 19vh;
+  width: 30vw;
+  max-width: 170px;
+  transform: translateX(-50%);
+}
+
+/* miko-place は手が右へ伸びた絵なので、左右反転して手を左（光の道の側）へ向ける */
+.intro-miko--place { transform: translateX(-50%) scaleX(-1); }
+
+/* ---------- 吹き出し ---------- */
+.intro-bubble {
+  position: absolute;
+  left: 3vw;
+  bottom: calc(12vh + 56vw);
+  max-width: 44vw;
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdfd 0%, #ffeef4 100%);
+  border: 1px solid rgba(255, 214, 228, 0.9);
+  box-shadow: 0 6px 18px rgba(40, 30, 70, 0.22);
+  color: #6b4a58;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+}
+
+/* ミコのほうを向く、小さなしっぽ */
+.intro-bubble::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: -9px;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 10px solid #ffeef4;
+  filter: drop-shadow(0 2px 1px rgba(40, 30, 70, 0.12));
+}
+
+/* ---------- 結晶 ---------- */
+.intro-crystal {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+/* 拾う場面の結晶。miko-pick の絵の中で、結晶があるところ（横71%・下から15.5%）に合わせています */
+.intro-crystal--pick {
+  left: 65.1vw;
+  bottom: calc(12vh + 10.7vw);
+  width: 17vw;
+  max-width: 96px;
+}
+
+/* 置く場面の結晶。miko-place の絵の中の、手のひらの上の結晶と同じ位置から始めます */
+.intro-crystal--sky {
+  left: calc(34.1vw + 9vw);   /* 左右反転したミコの、左手のひらの位置（進んだ先） */
+  bottom: calc(19vh + 20.4vw);
+  width: 12vw;
+  max-width: 68px;
+}
+
+/* ================= keyframes ================= */
+
+@keyframes introFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 背景：出て、最後にそっと消える */
+@keyframes introBgPickup {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 立っているミコ：出て、拾う絵へ入れ替わるときに消える */
+@keyframes introMikoMain {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.98); }
+  13%  { opacity: 1; transform: translateX(-50%) scale(1); }
+  88%  { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1); }
+}
+
+/* 拾う絵：入れ替わりで現れ、少し止まってから消える */
+@keyframes introMikoPick {
+  0%   { opacity: 0; transform: translateX(-50%) scale(1); }
+  22%  { opacity: 1; transform: translateX(-50%) scale(1); }
+  70%  { opacity: 1; transform: translateX(-50%) scale(1.01); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.01); }
+}
+
+/* 結晶：下から現れ、ゆっくり手元へ上がり、拾われた瞬間に絵へ渡す */
+@keyframes introCrystalPick {
+  0%   { opacity: 0; transform: translate(-50%, calc(-50% + 14vh)); filter: drop-shadow(0 0 6px rgba(180, 200, 255, 0.35)); }
+  12%  { opacity: 1; transform: translate(-50%, calc(-50% + 14vh)); }
+  35%  { opacity: 1; transform: translate(-50%, calc(-50% + 14vh)); }
+  77%  { opacity: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 0 6px rgba(180, 200, 255, 0.35)); }
+  82%  { filter: drop-shadow(0 0 20px rgba(230, 242, 255, 0.95)); }
+  90%  { filter: drop-shadow(0 0 8px rgba(200, 215, 255, 0.5)); }
+  100% { opacity: 0; transform: translate(-50%, -50%); filter: drop-shadow(0 0 8px rgba(200, 215, 255, 0.5)); }
+}
+
+/* 吹き出し：ふわっと出て、拾ったあと自然に消える */
+@keyframes introBubble {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.96); }
+  22%  { opacity: 1; transform: translateY(0) scale(1); }
+  74%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-4px) scale(1); }
+}
+
+/* 後ろ姿：現れて、ごく短くスーッと進み、置く絵へ入れ替わる */
+@keyframes introMikoBackWalk {
+  0%   { opacity: 0; transform: translateX(-50%); }
+  24%  { opacity: 1; transform: translateX(-50%); }
+  36%  { transform: translateX(-50%); }
+  82%  { opacity: 1; transform: translateX(calc(-50% + 9vw)); }
+  100% { opacity: 0; transform: translateX(calc(-50% + 9vw)); }
+}
+
+/* 置く絵：進んだ先で現れ、結晶が離れたら後ろ姿へゆずる */
+@keyframes introMikoPlace {
+  0%   { opacity: 0; transform: translateX(calc(-50% + 9vw)) scaleX(-1); }
+  22%  { opacity: 1; transform: translateX(calc(-50% + 9vw)) scaleX(-1); }
+  62%  { opacity: 1; transform: translateX(calc(-50% + 9vw)) scaleX(-1); }
+  100% { opacity: 0; transform: translateX(calc(-50% + 9vw)) scaleX(-1); }
+}
+
+/* 見上げる後ろ姿：結晶を置いたあと、そのまま残る */
+@keyframes introMikoBackWatch {
+  0%   { opacity: 0; transform: translateX(calc(-50% + 9vw)); }
+  40%  { opacity: 1; transform: translateX(calc(-50% + 9vw)); }
+  100% { opacity: 1; transform: translateX(calc(-50% + 9vw)); }
+}
+
+/* 置かれる結晶：手のひらから離れ、光の道の麓（足元）へそっと下りて、淡く光って残る */
+@keyframes introCrystalSky {
+  0%   { opacity: 0; transform: translate(-50%, -50%); filter: drop-shadow(0 0 8px rgba(200, 215, 255, 0.5)); }
+  14%  { opacity: 1; transform: translate(-50%, -50%); }
+  76%  { transform: translate(calc(-50% - 6vw), calc(-50% + 2vh + 20.4vw)); filter: drop-shadow(0 0 8px rgba(200, 215, 255, 0.5)); }
+  88%  { transform: translate(calc(-50% - 6vw), calc(-50% + 2vh + 20.4vw)); filter: drop-shadow(0 0 20px rgba(226, 238, 255, 0.95)); }
+  100% { opacity: 1; transform: translate(calc(-50% - 6vw), calc(-50% + 2vh + 20.4vw)); filter: drop-shadow(0 0 12px rgba(200, 215, 255, 0.75)); }
+}
+
+/* ================= 再生（is-playing が付いたときだけ動く） ================= */
+#intro-preview-animation.is-playing .intro-bg--pickup {
+  animation: introBgPickup 3400ms cubic-bezier(0.22, 0.61, 0.36, 1) 0ms both;
+}
+
+#intro-preview-animation.is-playing .intro-bg--overview {
+  animation: introFadeIn 700ms cubic-bezier(0.22, 0.61, 0.36, 1) 3000ms both;
+}
+
+#intro-preview-animation.is-playing .intro-miko--main {
+  animation: introMikoMain 2300ms cubic-bezier(0.22, 0.61, 0.36, 1) 100ms both;
+}
+
+#intro-preview-animation.is-playing .intro-crystal--pick {
+  animation: introCrystalPick 2150ms cubic-bezier(0.22, 0.61, 0.36, 1) 450ms both;
+}
+
+#intro-preview-animation.is-playing .intro-bubble {
+  animation: introBubble 1900ms cubic-bezier(0.22, 0.61, 0.36, 1) 800ms both;
+}
+
+#intro-preview-animation.is-playing .intro-miko--pick {
+  animation: introMikoPick 1400ms cubic-bezier(0.22, 0.61, 0.36, 1) 2100ms both;
+}
+
+#intro-preview-animation.is-playing .intro-miko--back {
+  animation: introMikoBackWalk 1300ms cubic-bezier(0.22, 0.61, 0.36, 1) 3200ms both;
+}
+
+#intro-preview-animation.is-playing .intro-miko--place {
+  animation: introMikoPlace 1200ms cubic-bezier(0.22, 0.61, 0.36, 1) 4200ms both;
+}
+
+#intro-preview-animation.is-playing .intro-crystal--sky {
+  animation: introCrystalSky 1300ms cubic-bezier(0.22, 0.61, 0.36, 1) 5000ms both;
+}
+
+#intro-preview-animation.is-playing .intro-miko--back2 {
+  animation: introMikoBackWatch 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 5200ms both;
+}
+
+/* 動きを減らす設定の端末では、静かに見せる */
+@media (prefers-reduced-motion: reduce) {
+  #intro-preview-animation.is-playing .intro-bg,
+  #intro-preview-animation.is-playing .intro-miko,
+  #intro-preview-animation.is-playing .intro-crystal {
+    animation-duration: 1ms;
+  }
+}
