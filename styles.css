@@ -1034,6 +1034,9 @@ body.is-final-sky .sky-message {
 
 .pdf-steps li { margin-bottom: 6px; }
 
+/* 案内の補足は、改行をそのまま生かす */
+#pdf-after { white-space: pre-line; }
+
 
 
 @media print {

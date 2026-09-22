@@ -27,19 +27,33 @@ const App = {
     /* 最初の画面は、フェードを使わずに組み立てる（下の revealApp で一度に出す） */
     UI.nextScreenInstant = true;
 
-    if (saved && !saved.completed) {
+    if (saved) {
+      /* 終わりまで進んだ回も、再開の対象にする。
+         PDF保存のあとなどにページが読み込み直されても、
+         最初からやり直しにしないため。 */
       this.session = saved;
-      UI.setText('resume-where', '前回は「' + this.stepLabel(saved.currentStep) + '」まで進んでいます。');
-      UI.showScreen('screen-resume');
+      this.showResumeScreen(saved);
     } else {
-      if (saved && saved.completed) {
-        /* 終わったセッションは残しておくが、画面は最初から */
-        this.session = saved;
-      }
       UI.showScreen('screen-intro');
     }
 
     this.revealApp();
+  },
+
+  /* 再開画面。終わった回と、途中の回で言い方を変える */
+  showResumeScreen: function (saved) {
+    const done = !!saved.completed;
+
+    UI.setText('resume-title', done
+      ? '前回の夜空が残っています。'
+      : '途中から歩きつづけますか？');
+
+    UI.setText('resume-where', done
+      ? '終わりの画面まで進んでいます。ことばはそのまま残っています。'
+      : '前回は「' + this.stepLabel(saved.currentStep) + '」まで進んでいます。');
+
+    UI.el('btn-resume').textContent = done ? '前回の夜空にもどる' : '途中から歩く';
+    UI.showScreen('screen-resume');
   },
 
   /* 背景の絵がそろってから、画面を一度だけ表示する。
@@ -895,14 +909,14 @@ const App = {
         '画面の共有ボタン（□に↑）を押す',
         '「ファイルに保存」を選ぶ'
       ];
-      after = '保存したPDFは「ファイル」アプリから確認できます。紙に印刷する必要はありません。';
+      after = '保存したPDFは「ファイル」アプリから確認できます。紙に印刷する必要はありません。\n保存が終わったら、ブラウザの「戻る」でこの画面にもどれます。' + 'もどれないときは、もう一度このページを開いてください。前回の夜空から続けられます。';
     } else if (android) {
       title = 'PDFを保存します';
       lead = 'このあとPDFの画面が開きます。';
       steps = [
         'プリンターや保存先の選択から「PDFとして保存」を選ぶ'
       ];
-      after = '保存したPDFは「ファイル」アプリやダウンロードから確認できます。';
+      after = '保存したPDFは「ファイル」アプリやダウンロードから確認できます。\n保存が終わったら、ブラウザの「戻る」でこの画面にもどれます。' + 'もどれないときは、もう一度このページを開いてください。前回の夜空から続けられます。';
     } else {
       title = 'PDFを保存します';
       lead = 'このあとPDF保存の画面が開きます。';
@@ -910,7 +924,7 @@ const App = {
         'プリンターや送信先の選択から「PDFに保存」を選ぶ',
         '保存先を指定して保存する'
       ];
-      after = '紙に印刷する必要はありません。PDFとして手元に残せます。';
+      after = '紙に印刷する必要はありません。PDFとして手元に残せます。\n保存が終わったら、この画面にそのままもどれます。';
     }
 
     UI.setText('pdf-title', title);
