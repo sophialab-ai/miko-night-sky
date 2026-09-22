@@ -115,6 +115,7 @@ const App = {
     UI.el('btn-pdf').addEventListener('click', function () { self.onPdf(); });
     UI.el('btn-pdf-go').addEventListener('click', function () { self.onPdfGo(); });
     UI.el('btn-copy-url').addEventListener('click', function () { self.onCopyUrl(); });
+    UI.el('btn-pdf-back').addEventListener('click', function () { UI.showScreen('screen-end'); });
     UI.el('btn-view-sky').addEventListener('click', function () { self.goFinalSky(false); });
     UI.el('btn-restart').addEventListener('click', function () { self.onRestart(); });
 
@@ -838,7 +839,6 @@ const App = {
     UI.hideMikoLine();
 
     /* 消したあとに押せてしまうボタンは、止めておく */
-    UI.el('pdf-guide').classList.add('hidden');
     ['btn-pdf', 'btn-pdf-go', 'btn-view-sky', 'btn-restart', 'btn-forget'].forEach(function (id) {
       UI.el(id).disabled = true;
     });
@@ -860,31 +860,79 @@ const App = {
     return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
   },
 
-  /* PDFボタン：すぐ印刷せず、保存のしかたを先に伝える */
-  onPdf: function () {
-    const inApp = this.isInAppBrowser();
-    const ios = this.isIOS();
-
-    let text;
-    if (inApp) {
-      text = 'このアプリの中で開いているブラウザでは、PDFをうまく保存できないことがあります。'
-           + '下のボタンでURLをコピーして、Safariで開いてからPDFを保存してください。';
-    } else if (ios) {
-      text = 'このあと印刷画面が開きます。'
-           + '画面の共有ボタン（□に↑のしるし）から「ファイルに保存」を選んでください。';
-    } else {
-      text = 'このあと印刷画面が開きます。'
-           + '送信先（プリンター）のところで「PDFに保存」を選んでください。';
-    }
-
-    UI.setText('pdf-guide-text', text);
-    UI.setText('pdf-guide-note', '');
-    UI.el('pdf-guide-copy-row').classList.toggle('hidden', !inApp);
-    UI.el('pdf-guide').classList.remove('hidden');
-    UI.el('pdf-guide').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  isAndroid: function () {
+    return /Android/i.test(navigator.userAgent || '');
   },
 
-  /* 案内を読んだうえで、実際に印刷画面を開く */
+  /* PDFボタン：すぐ開かず、保存のしかたを伝える画面へ進む */
+  onPdf: function () {
+    this.buildPdfGuide();
+    UI.setText('pdf-message', '');
+    UI.showScreen('screen-pdf');
+  },
+
+  /* 端末に合わせて、案内画面の中身を作る */
+  buildPdfGuide: function () {
+    const inApp = this.isInAppBrowser();
+    const ios = this.isIOS();
+    const android = this.isAndroid();
+
+    let title, lead, steps, after;
+
+    if (inApp) {
+      title = 'SafariかChromeで開いてください';
+      lead = 'このブラウザでは、PDFの保存がうまく動かないことがあります。';
+      steps = [
+        '下のボタンで、このページのURLをコピーする',
+        'SafariかChromeを開いて、URLを貼りつける',
+        'その画面で、もう一度PDFを持ち帰る'
+      ];
+      after = 'うまくいかないときは、この画面をそのままにしておけば、あとから試せます。';
+    } else if (ios) {
+      title = 'PDFを保存します';
+      lead = 'このあとPDFの画面が開きます。';
+      steps = [
+        '画面の共有ボタン（□に↑のしるし）を押す',
+        '「ファイルに保存」を選ぶ',
+        '保存する場所を選んで「保存」を押す'
+      ];
+      after = '保存したPDFは、「ファイル」アプリから見られます。';
+    } else if (android) {
+      title = 'PDFを保存します';
+      lead = 'このあとPDFの画面が開きます。';
+      steps = [
+        'プリンターを選ぶところを押す',
+        '「PDFとして保存」を選ぶ',
+        '保存する場所を選んで「保存」を押す'
+      ];
+      after = '保存したPDFは、「ファイル」アプリやダウンロードから見られます。';
+    } else {
+      title = 'PDFを保存します';
+      lead = 'このあと印刷画面が開きます。';
+      steps = [
+        'プリンターを選ぶところを押す',
+        '「PDFに保存」を選ぶ',
+        '保存する場所を選んで「保存」を押す'
+      ];
+      after = '紙に印刷しなくても、PDFとして手元に残せます。';
+    }
+
+    UI.setText('pdf-title', title);
+    UI.setText('pdf-lead', lead);
+    UI.setText('pdf-after', after);
+
+    const list = UI.el('pdf-steps');
+    list.innerHTML = '';
+    steps.forEach(function (line) {
+      const li = document.createElement('li');
+      li.textContent = line;
+      list.appendChild(li);
+    });
+
+    UI.el('pdf-copy-row').classList.toggle('hidden', !inApp);
+  },
+
+  /* 案内を読んだうえで、PDFの画面を開く */
   onPdfGo: function () {
     Pdf.generate(this.session);
     this.session.pdfGenerated = true;
@@ -894,8 +942,8 @@ const App = {
 
   onCopyUrl: function () {
     const url = location.href.split('#')[0];
-    const done = function () { UI.setText('pdf-guide-note', 'URLをコピーしました。Safariのアドレス欄に貼りつけてください。'); };
-    const fail = function () { UI.setText('pdf-guide-note', 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。'); };
+    const done = function () { UI.setText('pdf-message', 'URLをコピーしました。SafariかChromeのアドレス欄に貼りつけてください。'); };
+    const fail = function () { UI.setText('pdf-message', 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。'); };
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(done, fail);

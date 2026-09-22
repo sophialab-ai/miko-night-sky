@@ -1011,28 +1011,29 @@ body.is-final-sky .sky-message {
 /* ---------- 印刷（PDF） ---------- */
 #print-root { display: none; }
 
-/* PDFの保存案内 */
-.pdf-guide {
-  margin-top: 14px;
-  padding: 14px 14px 6px;
-  border: 1px solid var(--panel-line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  text-align: left;
+/* PDFを持ち帰る画面 */
+.pdf-title {
+  margin: 0 0 10px;
+  font-size: 1.12rem;
+  letter-spacing: 0.04em;
 }
 
-.pdf-guide__text {
-  margin: 0 0 12px;
-  font-size: 0.92rem;
+.pdf-lead {
+  margin: 0 0 14px;
+  font-size: 0.96rem;
   line-height: 1.8;
 }
 
-.pdf-guide__note {
-  margin: 10px 0 8px;
-  min-height: 1.4em;
-  color: var(--accent);
-  font-size: 0.86rem;
+.pdf-steps {
+  margin: 0 0 6px;
+  padding-left: 1.3em;
+  text-align: left;
+  font-size: 0.94rem;
+  line-height: 1.9;
 }
+
+.pdf-steps li { margin-bottom: 6px; }
+
 
 
 @media print {

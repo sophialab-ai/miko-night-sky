@@ -6,8 +6,8 @@
 <meta name="format-detection" content="telephone=no">
 <title>ミコと一緒に歩く夜空</title>
 <!-- アイコン（ブラウザのタブ／iPhoneのホーム画面） -->
-<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=63">
-<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=63">
+<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=64">
+<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=64">
 <meta name="description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 
 <!-- ================== SNS共有（OGP） ==================
@@ -31,14 +31,14 @@
 <meta name="twitter:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 <meta name="twitter:image" content="https://sophialab-ai.github.io/miko-night-sky/assets/images/ogp-miko-night-sky.jpg">
 <!-- ================================================== -->
-<link rel="stylesheet" href="styles.css?v=63">
+<link rel="stylesheet" href="styles.css?v=64">
 <!-- 導入予告アニメーション（質問が始まる前に一度だけ流す） -->
-<link rel="stylesheet" href="intro.css?v=63">
+<link rel="stylesheet" href="intro.css?v=64">
 </head>
 <body class="bg-overview is-booting">
 
 <!-- 開発用：いま読み込まれている画面の版（仮モードのときだけ出ます） -->
-<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v63</div>
+<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v64</div>
 
 <!-- 夜空（背景の色。画像が出るまでの下地） -->
 <div id="sky-bg" aria-hidden="true"></div>
@@ -231,18 +231,6 @@
       <div class="btn-row btn-row--single">
         <button type="button" class="btn btn--primary" id="btn-pdf">今日のことばをPDFで持ち帰る</button>
       </div>
-
-      <!-- PDFの保存案内（押したときだけ出る） -->
-      <div id="pdf-guide" class="pdf-guide hidden">
-        <p id="pdf-guide-text" class="pdf-guide__text"></p>
-        <div class="btn-row btn-row--single">
-          <button type="button" class="btn btn--primary" id="btn-pdf-go">印刷画面をひらく</button>
-        </div>
-        <div class="btn-row btn-row--single hidden" id="pdf-guide-copy-row">
-          <button type="button" class="btn btn--quiet" id="btn-copy-url">このページのURLをコピー</button>
-        </div>
-        <p id="pdf-guide-note" class="pdf-guide__note"></p>
-      </div>
       <div class="btn-row btn-row--single">
         <button type="button" class="btn btn--quiet" id="btn-view-sky">もう一度、夜空を眺める</button>
       </div>
@@ -257,6 +245,28 @@
       </div>
       <p class="note">このアプリに保存されている回答や途中経過が、この端末から削除されます。<br>そのあとはPDFを作れなくなるので、先にPDFを保存してください。</p>
       <p id="end-message" class="code-message"></p>
+    </div>
+  </section>
+
+  <!-- PDFを持ち帰る（保存のしかたを伝える画面） -->
+  <section id="screen-pdf" class="screen">
+    <div class="panel panel--text">
+      <h2 id="pdf-title" class="pdf-title"></h2>
+      <p id="pdf-lead" class="pdf-lead"></p>
+      <ol id="pdf-steps" class="pdf-steps"></ol>
+      <p id="pdf-after" class="note"></p>
+
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-pdf-go">PDFの画面をひらく</button>
+      </div>
+      <div class="btn-row btn-row--single hidden" id="pdf-copy-row">
+        <button type="button" class="btn btn--quiet" id="btn-copy-url">このページのURLをコピー</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-pdf-back">戻る</button>
+      </div>
+
+      <p id="pdf-message" class="code-message"></p>
     </div>
   </section>
 
@@ -293,13 +303,13 @@
 <!-- PDF用（印刷のときだけ表示される） -->
 <div id="print-root" aria-hidden="true"></div>
 
-<script src="js/config.js?v=63"></script>
-<script src="js/questions.js?v=63"></script>
-<script src="js/storage.js?v=63"></script>
-<script src="js/api.js?v=63"></script>
-<script src="js/ui.js?v=63"></script>
-<script src="js/pdf.js?v=63"></script>
-<script src="js/intro.js?v=63"></script>
-<script src="app.js?v=63"></script>
+<script src="js/config.js?v=64"></script>
+<script src="js/questions.js?v=64"></script>
+<script src="js/storage.js?v=64"></script>
+<script src="js/api.js?v=64"></script>
+<script src="js/ui.js?v=64"></script>
+<script src="js/pdf.js?v=64"></script>
+<script src="js/intro.js?v=64"></script>
+<script src="app.js?v=64"></script>
 </body>
 </html>
