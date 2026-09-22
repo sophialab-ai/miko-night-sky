@@ -1011,8 +1011,34 @@ body.is-final-sky .sky-message {
 /* ---------- 印刷（PDF） ---------- */
 #print-root { display: none; }
 
+/* PDFの保存案内 */
+.pdf-guide {
+  margin-top: 14px;
+  padding: 14px 14px 6px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+}
+
+.pdf-guide__text {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  line-height: 1.8;
+}
+
+.pdf-guide__note {
+  margin: 10px 0 8px;
+  min-height: 1.4em;
+  color: var(--accent);
+  font-size: 0.86rem;
+}
+
+
 @media print {
-  @page { size: A4 landscape; margin: 10mm; }
+  /* 向きは指定しない。iPhoneの印刷画面は landscape を無視するため、
+     縦で崩れない組み方に揃える。 */
+  @page { size: A4; margin: 12mm; }
 
   html, body {
     background: #ffffff !important;
@@ -1021,7 +1047,12 @@ body.is-final-sky .sky-message {
     line-height: 1.6;
   }
 
-  #sky-bg, #crystal-field, #flight-layer, #app, .sheet { display: none !important; }
+  /* 画面用の層は、すべて印刷から外す。
+     .scene-image と #world は position:fixed のため、
+     隠さないと印刷本文の上に重なって文字が読めなくなる。 */
+  #sky-bg, #crystal-field, #flight-layer, #app, .sheet,
+  .scene-image, #world, #intro-preview-animation,
+  .build-badge { display: none !important; }
 
   #print-root {
     display: block !important;
@@ -1042,10 +1073,8 @@ body.is-final-sky .sky-message {
   .print-subtitle { margin: 1mm 0 0; font-size: 9.5pt; color: #4a4f76; }
   .print-date { margin-left: auto; font-size: 9pt; color: #4a4f76; }
 
-  .print-grid {
-    column-count: 2;
-    column-gap: 10mm;
-  }
+  /* 2段組はiPhoneの印刷で中身が欠けることがあるため、1段にする */
+  .print-grid { display: block; }
 
   .print-item {
     break-inside: avoid;

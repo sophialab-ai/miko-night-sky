@@ -113,6 +113,8 @@ const App = {
     UI.el('btn-reflect-skip').addEventListener('click', function () { self.onReflectSubmit(true); });
 
     UI.el('btn-pdf').addEventListener('click', function () { self.onPdf(); });
+    UI.el('btn-pdf-go').addEventListener('click', function () { self.onPdfGo(); });
+    UI.el('btn-copy-url').addEventListener('click', function () { self.onCopyUrl(); });
     UI.el('btn-view-sky').addEventListener('click', function () { self.goFinalSky(false); });
     UI.el('btn-restart').addEventListener('click', function () { self.onRestart(); });
 
@@ -836,18 +838,84 @@ const App = {
     UI.hideMikoLine();
 
     /* 消したあとに押せてしまうボタンは、止めておく */
-    ['btn-pdf', 'btn-view-sky', 'btn-restart', 'btn-forget'].forEach(function (id) {
+    UI.el('pdf-guide').classList.add('hidden');
+    ['btn-pdf', 'btn-pdf-go', 'btn-view-sky', 'btn-restart', 'btn-forget'].forEach(function (id) {
       UI.el(id).disabled = true;
     });
 
     UI.setText('end-message', 'この端末から回答を削除しました。');
   },
 
+  /* アプリの中で開かれた簡易ブラウザか（Messenger・Instagram・LINEなど）。
+     こうしたブラウザでは印刷が動かないことがある。 */
+  isInAppBrowser: function () {
+    const ua = navigator.userAgent || '';
+    return /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|MicroMessenger|Twitter/i.test(ua);
+  },
+
+  isIOS: function () {
+    const ua = navigator.userAgent || '';
+    if (/iPhone|iPad|iPod/.test(ua)) return true;
+    /* iPadOSはMacintoshを名乗るので、指で触れるかどうかで見分ける */
+    return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+  },
+
+  /* PDFボタン：すぐ印刷せず、保存のしかたを先に伝える */
   onPdf: function () {
+    const inApp = this.isInAppBrowser();
+    const ios = this.isIOS();
+
+    let text;
+    if (inApp) {
+      text = 'このアプリの中で開いているブラウザでは、PDFをうまく保存できないことがあります。'
+           + '下のボタンでURLをコピーして、Safariで開いてからPDFを保存してください。';
+    } else if (ios) {
+      text = 'このあと印刷画面が開きます。'
+           + '画面の共有ボタン（□に↑のしるし）から「ファイルに保存」を選んでください。';
+    } else {
+      text = 'このあと印刷画面が開きます。'
+           + '送信先（プリンター）のところで「PDFに保存」を選んでください。';
+    }
+
+    UI.setText('pdf-guide-text', text);
+    UI.setText('pdf-guide-note', '');
+    UI.el('pdf-guide-copy-row').classList.toggle('hidden', !inApp);
+    UI.el('pdf-guide').classList.remove('hidden');
+    UI.el('pdf-guide').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  /* 案内を読んだうえで、実際に印刷画面を開く */
+  onPdfGo: function () {
     Pdf.generate(this.session);
     this.session.pdfGenerated = true;
     Storage.save(this.session);
     this.log('pdf_generated');
+  },
+
+  onCopyUrl: function () {
+    const url = location.href.split('#')[0];
+    const done = function () { UI.setText('pdf-guide-note', 'URLをコピーしました。Safariのアドレス欄に貼りつけてください。'); };
+    const fail = function () { UI.setText('pdf-guide-note', 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。'); };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, fail);
+      return;
+    }
+    /* 古いブラウザ向けの控え */
+    try {
+      const box = document.createElement('textarea');
+      box.value = url;
+      box.setAttribute('readonly', '');
+      box.style.position = 'fixed';
+      box.style.opacity = '0';
+      document.body.appendChild(box);
+      box.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(box);
+      if (ok) { done(); } else { fail(); }
+    } catch (e) {
+      fail();
+    }
   },
 
   onRestart: function () {
