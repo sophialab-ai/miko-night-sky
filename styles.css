@@ -1011,6 +1011,20 @@ body.is-final-sky .sky-message {
 /* ---------- 印刷（PDF） ---------- */
 #print-root { display: none; }
 
+/* ===== 横長の画面（PC）では、夜空を中央の縦長領域に収める =====
+   条件は背景画像の縦横比（941:1672）そのもの。
+   これより縦長の画面＝スマホでは、この指定は一切効かない。
+   js/ui.js の stage() が同じ条件で座標を計算している。 */
+@media (min-aspect-ratio: 941 / 1672) {
+  .scene-image {
+    left: 50%;
+    right: auto;
+    width: calc(100vh * 941 / 1672);
+    transform: translateX(-50%);
+  }
+}
+
+
 /* PDFを持ち帰る画面 */
 .pdf-title {
   margin: 0 0 10px;

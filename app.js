@@ -495,10 +495,12 @@ const App = {
   registerCrystal: function (questionId, posIndex) {
     /* ミコが立っている足元（道の上）に置く */
     const world = UI.crystalPointFor(posIndex);
+    /* 画面の大きさが変わっても同じ場所に戻せるよう、領域内の割合で持つ */
+    const ratio = UI.toStageRatio(world);
     this.session.crystals.push({
       id: questionId,
-      x: world.x / UI.vw(),
-      y: world.y / UI.vh(),
+      x: ratio.x,
+      y: ratio.y,
       side: world.side || 'r'
     });
     Storage.save(this.session);
@@ -560,10 +562,10 @@ const App = {
     const self = this;
     (this.session.crystals || []).forEach(function (c) {
       /* 古いデータは画面の%で持っていたので、その場合だけ読み替える */
-      const ratio = (c.y > 1.5) ? c.y / 100 : c.y;
+      const y = (c.y > 1.5) ? c.y / 100 : c.y;
       UI.placeCrystalInSky(
         c.id,
-        { x: c.x * UI.vw(), y: ratio * UI.vh() },
+        UI.fromStageRatio({ x: c.x, y: y }),
         self.openCrystal.bind(self),
         self.labelTextFor(c.id),
         c.side
