@@ -1,0 +1,1139 @@
+/* styles.css  ミコと一緒に歩く夜空 */
+
+:root {
+  --sky-top: #0b1030;
+  --sky-mid: #141a44;
+  --sky-bottom: #241a46;
+  --text: #eef0ff;
+  --text-dim: #b9bfe0;
+  --panel: rgba(16, 20, 50, 0.72);
+  --panel-line: rgba(180, 190, 255, 0.22);
+  --accent: #cfd6ff;
+  --btn: rgba(120, 132, 220, 0.30);
+  --btn-line: rgba(190, 200, 255, 0.45);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--sky-top);
+  color: var(--text);
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- 起動中（最初の画面が決まるまで） ---------- */
+/* URLを開いた直後に、背景や作りかけの画面が一瞬見えないよう、
+   最初の画面が決まるまでは何も描かずに待つ。 */
+body.is-booting {
+  background-color: #0b1030;
+}
+
+body.is-booting #sky-bg,
+body.is-booting .scene-image,
+body.is-booting #world,
+body.is-booting #flight-layer,
+body.is-booting #app {
+  visibility: hidden;
+}
+
+/* ---------- 夜空 ---------- */
+#sky-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* 地平線のほのかな明るさ */
+    radial-gradient(120% 42% at 50% 100%, rgba(120, 118, 200, 0.28), transparent 70%),
+    linear-gradient(180deg,
+      #0a0a2c 0%,
+      #16143f 18%,
+      #241a54 38%,
+      #3a2468 58%,
+      #56336f 76%,
+      #7b4a76 90%,
+      #a0637e 100%);
+}
+
+/* 歩いていく夜空。層ごとに流れる速さを変えて、奥行きを出す */
+#world {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  --cam: 0px;
+  --camy: 0px;
+  --zoom: 1;
+  --pan: 2400ms;
+}
+
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 340%;
+  height: 100%;
+  transform: translate3d(
+    calc(var(--cam) * var(--rate) * -1),
+    calc(var(--camy) * var(--ratey, var(--rate))),
+    0);
+  transition: transform var(--pan) var(--ease);
+  will-change: transform;
+}
+
+/* 星雲。夜空に色みをつける層 */
+.layer--nebula {
+  background:
+    radial-gradient(52vw 36vh at 6vw 24vh,   rgba(104, 116, 236, 0.55), transparent 70%),
+    radial-gradient(44vw 30vh at 40vw 12vh,  rgba(168, 118, 226, 0.45), transparent 70%),
+    radial-gradient(56vw 38vh at 86vw 30vh,  rgba(72, 126, 222, 0.48), transparent 70%),
+    radial-gradient(42vw 28vh at 128vw 16vh, rgba(214, 138, 186, 0.38), transparent 70%),
+    radial-gradient(54vw 36vh at 170vw 28vh, rgba(96, 122, 232, 0.46), transparent 70%),
+    radial-gradient(44vw 30vh at 214vw 14vh, rgba(160, 120, 224, 0.40), transparent 70%);
+  filter: blur(18px);
+  opacity: 0.92;
+}
+
+/* 星が集まって、うっすら帯に見えるところ */
+.layer--band {
+  background:
+    radial-gradient(70vw 12vh at 24vw 26vh,  rgba(206, 214, 255, 0.22), transparent 72%),
+    radial-gradient(70vw 11vh at 110vw 20vh, rgba(206, 214, 255, 0.18), transparent 72%),
+    radial-gradient(70vw 12vh at 196vw 24vh, rgba(206, 214, 255, 0.20), transparent 72%);
+  filter: blur(10px);
+}
+
+/* 月。三日月をひとつだけ、静かに */
+.layer--moon {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M64 6 a46 46 0 1 0 28 76 A37 37 0 1 1 64 6 Z' fill='%23fdf6e3' fill-opacity='0.95'/%3E%3C/svg%3E"),
+    radial-gradient(circle 150px at 76vw 14vh, rgba(255, 246, 214, 0.22), transparent 70%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 76vw 14vh, 0 0;
+  background-size: 92px 92px, auto;
+  filter: drop-shadow(0 0 18px rgba(255, 242, 206, 0.5));
+}
+
+/* 夜の雲 */
+.layer--clouds {
+  background:
+    radial-gradient(38vw 12vh at 18vw 52vh, rgba(158, 126, 196, 0.30), transparent 72%),
+    radial-gradient(30vw 9vh at 52vw 44vh,  rgba(186, 142, 198, 0.24), transparent 72%),
+    radial-gradient(34vw 10vh at 88vw 56vh, rgba(140, 120, 200, 0.26), transparent 72%),
+    radial-gradient(36vw 11vh at 132vw 46vh, rgba(190, 146, 200, 0.22), transparent 72%),
+    radial-gradient(32vw 10vh at 176vw 54vh, rgba(150, 126, 204, 0.24), transparent 72%);
+  filter: blur(14px);
+}
+
+/* 遠くの星 */
+.layer--far {
+  background-image:
+    radial-gradient(1px 1px at 40px 60px,   rgba(255,255,255,0.70), transparent),
+    radial-gradient(1px 1px at 160px 30px,  rgba(255,255,255,0.55), transparent),
+    radial-gradient(1px 1px at 260px 120px, rgba(255,255,255,0.62), transparent),
+    radial-gradient(1px 1px at 330px 70px,  rgba(255,255,255,0.48), transparent),
+    radial-gradient(1px 1px at 90px 190px,  rgba(255,255,255,0.55), transparent),
+    radial-gradient(1px 1px at 210px 240px, rgba(255,255,255,0.48), transparent),
+    radial-gradient(1px 1px at 380px 200px, rgba(255,255,255,0.60), transparent),
+    radial-gradient(1px 1px at 300px 300px, rgba(255,255,255,0.45), transparent),
+    radial-gradient(1px 1px at 20px 280px,  rgba(255,255,255,0.50), transparent),
+    radial-gradient(1px 1px at 240px 20px,  rgba(255,255,255,0.52), transparent),
+    radial-gradient(1px 1px at 430px 330px, rgba(255,255,255,0.46), transparent),
+    radial-gradient(1px 1px at 130px 120px, rgba(255,255,255,0.44), transparent),
+    radial-gradient(1px 1px at 500px 90px,  rgba(255,255,255,0.56), transparent),
+    radial-gradient(1px 1px at 560px 260px, rgba(255,255,255,0.42), transparent),
+    radial-gradient(1px 1px at 470px 430px, rgba(255,255,255,0.50), transparent),
+    radial-gradient(1px 1px at 350px 470px, rgba(255,255,255,0.40), transparent),
+    radial-gradient(1px 1px at 190px 400px, rgba(255,255,255,0.52), transparent),
+    radial-gradient(1px 1px at 60px 450px,  rgba(255,255,255,0.44), transparent),
+    radial-gradient(1px 1px at 610px 390px, rgba(255,255,255,0.48), transparent),
+    radial-gradient(1px 1px at 280px 360px, rgba(255,255,255,0.38), transparent);
+  background-size: 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px, 640px 500px;
+  animation: breathe 11s ease-in-out infinite;
+}
+
+/* 近くの星。少し大きく、ゆっくりまたたく */
+.layer--mid {
+  background-image:
+    radial-gradient(2px 2px at 70px 90px,     rgba(255,255,255,0.95), transparent),
+    radial-gradient(2.6px 2.6px at 300px 50px, rgba(216,226,255,0.90), transparent),
+    radial-gradient(1.8px 1.8px at 180px 220px, rgba(255,246,236,0.85), transparent),
+    radial-gradient(2.2px 2.2px at 460px 160px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.8px 1.8px at 560px 300px, rgba(220,230,255,0.75), transparent),
+    radial-gradient(1.6px 1.6px at 120px 380px, rgba(255,255,255,0.70), transparent),
+    radial-gradient(2.8px 2.8px at 400px 420px, rgba(236,240,255,0.85), transparent),
+    radial-gradient(1.8px 1.8px at 620px 90px,  rgba(255,250,240,0.80), transparent);
+  background-size: 700px 560px, 700px 560px, 700px 560px, 700px 560px, 700px 560px, 700px 560px, 700px 560px, 700px 560px;
+  animation: twinkle 8s ease-in-out infinite;
+}
+
+
+/* 山のふもとの、小さな町あかり */
+.layer--town {
+  background-image:
+    radial-gradient(1.6px 1.6px at 30px 12px,  rgba(255, 226, 170, 0.85), transparent),
+    radial-gradient(1.4px 1.4px at 90px 20px,  rgba(255, 214, 158, 0.70), transparent),
+    radial-gradient(1.8px 1.8px at 150px 9px,  rgba(255, 232, 186, 0.80), transparent),
+    radial-gradient(1.4px 1.4px at 210px 22px, rgba(255, 210, 150, 0.65), transparent),
+    radial-gradient(1.6px 1.6px at 265px 14px, rgba(255, 226, 170, 0.75), transparent);
+  background-size: 300px 30px, 300px 30px, 300px 30px, 300px 30px, 300px 30px;
+  background-repeat: repeat-x;
+  background-position: left bottom 15vh;
+  filter: drop-shadow(0 0 4px rgba(255, 210, 150, 0.6));
+  animation: twinkle 9s ease-in-out infinite;
+}
+
+/* 光の道。手前は広く、月へ向かって細くなっていく */
+.layer--road { z-index: 1; }
+
+.layer--road > div {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100%;
+  /* 月（74vw 15vh あたり）へ向かって細くなる道の形 */
+  clip-path: polygon(72.8% 22%, 75.4% 22%, 62% 100%, 8% 100%);
+}
+
+.road-glow {
+  background:
+    linear-gradient(to top,
+      rgba(206, 224, 255, 0.30) 0%,
+      rgba(182, 206, 255, 0.20) 34%,
+      rgba(166, 194, 255, 0.12) 64%,
+      rgba(156, 186, 255, 0.05) 85%,
+      transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 16%, rgba(0,0,0,1) 84%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 16%, rgba(0,0,0,1) 84%, transparent 100%);
+  filter: blur(3px);
+}
+
+/* 道を、手前へ流れていく光 */
+.road-flow {
+  background: repeating-linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 27px,
+    rgba(233, 240, 255, 0.26) 27px,
+    rgba(233, 240, 255, 0.26) 31px);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.38) 45%, transparent 80%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.38) 45%, transparent 80%);
+  filter: blur(1.5px);
+  animation: roadflow 3.4s linear infinite;
+}
+
+@keyframes roadflow {
+  from { background-position-y: 0; }
+  to   { background-position-y: 31px; }
+}
+
+/* 道のふちの、やわらかい光 */
+.road-edge {
+  background:
+    linear-gradient(to top, rgba(255,255,255,0.28), rgba(200,220,255,0.08) 55%, transparent 85%);
+  filter: blur(16px);
+  opacity: 0.8;
+  animation: pathglow 7s ease-in-out infinite;
+}
+
+@keyframes pathglow {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+/* オーロラ。ゆっくり揺れる光の幕 */
+.layer--aurora { z-index: 0; }
+
+.aurora-inner {
+  position: absolute;
+  inset: -14% -8% 26% -8%;
+  background:
+    /* 光の幕。すき間をあけて、カーテンのように見せる */
+    repeating-linear-gradient(99deg,
+      rgba(96, 240, 200, 0) 0px,
+      rgba(96, 240, 200, 0.40) 46px,
+      rgba(130, 220, 255, 0.34) 96px,
+      rgba(96, 240, 200, 0.16) 142px,
+      rgba(96, 240, 200, 0) 186px,
+      rgba(96, 240, 200, 0) 330px),
+    repeating-linear-gradient(94deg,
+      rgba(178, 150, 250, 0) 0px,
+      rgba(178, 150, 250, 0.26) 70px,
+      rgba(140, 190, 255, 0.20) 132px,
+      rgba(178, 150, 250, 0) 208px,
+      rgba(178, 150, 250, 0) 520px);
+  filter: blur(11px);
+  opacity: 0.9;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.95) 22%, rgba(0,0,0,0.7) 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.95) 22%, rgba(0,0,0,0.7) 62%, transparent 100%);
+  animation: auroraSway 26s ease-in-out infinite;
+}
+
+@keyframes auroraSway {
+  0%, 100% { transform: translateX(0) skewX(0deg) scaleY(1); opacity: 0.7; }
+  50%      { transform: translateX(2.5%) skewX(-5deg) scaleY(1.12); opacity: 0.95; }
+}
+
+/* 遠くの山なみ */
+.layer--hills-far {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 260' preserveAspectRatio='none'%3E%3Cpath d='M0 260 L0 150 C 90 96, 170 150, 270 118 C 380 84, 470 142, 580 112 C 700 80, 790 140, 900 110 C 1010 80, 1100 136, 1200 108 L1200 260 Z' fill='%23262c68'/%3E%3C/svg%3E") bottom center / 100% 34vh no-repeat;
+  opacity: 0.75;
+}
+
+/* 手前の山なみ */
+.layer--hills-near {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 220' preserveAspectRatio='none'%3E%3Cpath d='M0 220 L0 158 C 110 104, 210 164, 330 132 C 450 100, 540 160, 660 134 C 790 106, 880 166, 1010 140 C 1110 120, 1160 152, 1200 142 L1200 220 Z' fill='%23090c26'/%3E%3C/svg%3E") bottom center / 100% 24vh no-repeat;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+
+/* ---------- 背景画像 ---------- */
+/* 2枚を重ねておき、body のクラスで見せ分ける（切り替えはゆっくり） */
+.scene-image {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+  pointer-events: none;
+}
+
+.scene-image--overview { background-image: url("./assets/images/bg-sky-overview.png"); }
+.scene-image--pickup   { background-image: url("./assets/images/bg-pickup-scene.png"); }
+
+body.bg-overview .scene-image--overview { opacity: 1; }
+body.bg-pickup   .scene-image--pickup   { opacity: 1; }
+
+/* 背景画像を主役にするため、CSSで描いていた空の層は出さない
+   （星・月・雲・山・町あかり・光の道・オーロラ・星雲は、画像の中にある） */
+body.bg-overview .layer--nebula,
+body.bg-overview .layer--aurora,
+body.bg-overview .layer--band,
+body.bg-overview .layer--moon,
+body.bg-overview .layer--clouds,
+body.bg-overview .layer--far,
+body.bg-overview .layer--mid,
+body.bg-overview .layer--hills-far,
+body.bg-overview .layer--hills-near,
+body.bg-overview .layer--town,
+body.bg-overview .layer--road,
+body.bg-pickup .layer--nebula,
+body.bg-pickup .layer--aurora,
+body.bg-pickup .layer--band,
+body.bg-pickup .layer--moon,
+body.bg-pickup .layer--clouds,
+body.bg-pickup .layer--far,
+body.bg-pickup .layer--mid,
+body.bg-pickup .layer--hills-far,
+body.bg-pickup .layer--hills-near,
+body.bg-pickup .layer--town,
+body.bg-pickup .layer--road {
+  display: none;
+}
+
+/* PCでは、縦長の画像を引き伸ばさずに中央へ置く */
+@media (min-width: 720px) {
+  .scene-image {
+    background-size: auto 100%;
+    background-color: #131038;
+  }
+}
+
+/* ---------- 結晶 ---------- */
+#crystal-field {
+  z-index: 2;
+  transform: translate3d(calc(var(--cam) * -1), var(--camy), 0) scale(var(--zoom));
+  transform-origin: 50% 50%;
+  transition: transform var(--pan) var(--ease);
+}
+
+#crystal-field.is-tappable { pointer-events: none; }
+#crystal-field.is-tappable .crystal--placed { pointer-events: auto; }
+
+#flight-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.crystal--placed {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: var(--crystal-size, 58px);
+  height: var(--crystal-size, 58px);
+  padding: 0;
+  border: 0;
+  background: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+  animation: float 7s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.crystal--placed.is-visible { opacity: 1; }
+
+.crystal--placed img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(180, 200, 255, 0.55));
+}
+
+.crystal--flying {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: left 1.6s var(--ease), top 1.6s var(--ease), opacity 1.1s var(--ease), filter 1.2s var(--ease);
+  filter: drop-shadow(0 0 6px rgba(180, 200, 255, 0.35));
+}
+
+.crystal--flying.is-visible { opacity: 1; }
+.crystal--flying.is-glowing { filter: drop-shadow(0 0 18px rgba(200, 215, 255, 0.85)); }
+
+/* 拾えたことが分かる、ひかえめな光 */
+.crystal--flying.is-caught { filter: drop-shadow(0 0 16px rgba(226, 238, 255, 0.9)); }
+
+/* 動いているあいだの、ごく小さな浮遊 */
+.crystal--flying {
+  animation: crystalfloat 3.6s ease-in-out infinite;
+}
+
+@keyframes crystalfloat {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 4px)); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 3px)); }
+}
+
+/* 結晶をつなぐ、光の線 */
+#constellation {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#constellation .line-soft {
+  fill: none;
+  stroke: rgba(210, 226, 255, 0.16);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: blur(4px);
+}
+
+#constellation .line-core {
+  fill: none;
+  stroke: rgba(240, 246, 255, 0.55);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1.2 8;
+  animation: linetwinkle 6s ease-in-out infinite;
+}
+
+@keyframes linetwinkle {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+/* ことばの札（まとめて眺める画面でだけ出す） */
+.crystal-label {
+  position: absolute;
+  left: 76%;
+  top: 44%;
+  display: none;
+  max-width: 40vw;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(24, 22, 58, 0.78);
+  border: 1px solid rgba(200, 200, 255, 0.28);
+  color: #f0f0ff;
+  font-size: var(--label-size, 13px);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(4px);
+}
+
+/* 右側に置いた結晶は、札を左に出す */
+.crystal-label--left {
+  left: auto;
+  right: 76%;
+  text-align: right;
+}
+
+body.is-final-sky .crystal-label { display: block; }
+
+/* まとめて眺めるときは、道を控えめに */
+body.is-final-sky .layer--road { opacity: 0.35; transition: opacity 1.2s var(--ease); }
+.layer--road { transition: opacity 1.2s var(--ease); }
+
+/* ---------- 画面 ---------- */
+#app {
+  position: relative;
+  z-index: 2;
+  /* 夜空の結晶をタップできるように、画面のない場所はクリックを通す */
+  pointer-events: none;
+}
+
+.screen { pointer-events: auto; }
+
+.screen {
+  display: none;
+  min-height: 100dvh;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  opacity: 0;
+  transition: opacity 0.7s var(--ease);
+}
+
+.screen.is-active {
+  display: block;
+  opacity: 1;
+  animation: fadeIn 0.7s var(--ease);
+}
+
+/* 幕の裏で組み立てるときは、フェードインを使わずに即座に出す */
+.screen.is-active.no-fade {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.screen--sky {
+  pointer-events: none;
+  background: none;
+}
+
+.sheet { pointer-events: auto; }
+
+.screen--sky .btn,
+.screen--sky .sky-final-ui { pointer-events: auto; }
+
+/* ---------- パネル ---------- */
+.panel {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 20px 28px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+}
+
+.panel--text p { margin: 0 0 18px; }
+.panel-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.note {
+  margin-top: 18px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.notice {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px dashed var(--panel-line);
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.build-badge {
+  position: fixed;
+  top: calc(6px + env(safe-area-inset-top));
+  right: 8px;
+  z-index: 50;
+  padding: 4px 10px;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: rgba(10, 13, 38, 0.72);
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.build-tag {
+  display: inline-block;
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+.miko-small {
+  display: block;
+  width: 130px;
+  margin: 0 auto 18px;
+}
+
+/* ---------- 対話画面 ---------- */
+.dialogue-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.miko-stage {
+  text-align: center;
+  margin-bottom: -18px;
+}
+
+.miko-main {
+  width: 210px;
+  max-width: 58vw;
+  animation: breathe 7s ease-in-out infinite;
+  transition: opacity 0.5s var(--ease), transform 1.6s var(--ease);
+}
+
+/* 結晶を拾うとき、ほんの少しだけ前へ寄る */
+.miko-main.is-reaching { transform: translateY(-5px) scale(1.02); }
+
+.panel--dialogue { padding-top: 26px; }
+
+.step-indicator {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.question-text {
+  margin: 0 0 16px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+.hint-box {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hint-title {
+  margin: 0 0 8px;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+}
+
+.hint-list {
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.9;
+}
+
+.hint-list:empty { display: none; }
+
+.hint-note {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.answer-input {
+  display: block;
+  width: 100%;
+  min-height: 108px;
+  padding: 14px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(8, 10, 30, 0.55);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.8;
+  resize: vertical;
+}
+
+.answer-input--tall { min-height: 160px; }
+.answer-input:focus {
+  outline: none;
+  border-color: rgba(200, 210, 255, 0.6);
+}
+
+.miko-after-line {
+  max-width: 560px;
+  margin: 18px auto 0;
+  padding: 0 4px;
+  min-height: 1.9em;
+  color: var(--accent);
+  font-size: 0.98rem;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease);
+}
+
+.miko-after-line.is-visible { opacity: 1; }
+
+/* ---------- ボタン ---------- */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-row--single { display: block; }
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--btn-line);
+  background: var(--btn);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: opacity 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.btn:active { opacity: 0.7; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.btn--primary { background: rgba(140, 152, 235, 0.42); }
+.btn--quiet {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+  font-size: 0.94rem;
+}
+
+/* 横に2つ並ぶときは、文字が折り返さないように少しだけ小さく */
+.btn-row:not(.btn-row--single) .btn {
+  padding: 14px 8px;
+  font-size: 0.9rem;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+}
+
+.input-line {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(8, 10, 30, 0.55);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+}
+
+.code-message {
+  margin: 14px 0 0;
+  min-height: 1.6em;
+  color: var(--accent);
+  font-size: 0.94rem;
+}
+
+/* ---------- Q1の拾う場面（1画面まるごと） ---------- */
+.screen--pickup {
+  pointer-events: none;
+  background: none;
+}
+
+.pickup-miko {
+  position: fixed;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  width: min(74vw, 430px);
+  transition: transform 0.9s var(--ease), opacity 1s var(--ease);
+  animation: pickfloat 4.6s ease-in-out infinite;
+}
+
+@keyframes pickfloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-4px); }
+}
+
+/* 結晶へ、ほんの少しだけ身を寄せる（十数px） */
+.pickup-miko.is-reaching {
+  animation: none;
+  transform: translateX(-50%) translateY(-12px) scale(1.02);
+}
+
+.pickup-line {
+  position: fixed;
+  left: 50%;
+  top: 9vh;
+  transform: translateX(-50%);
+  width: min(88vw, 520px);
+  margin: 0;
+  text-align: center;
+  color: var(--accent);
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+}
+
+.pickup-line.is-visible { opacity: 1; }
+
+/* ---------- 夜空全体画面 ---------- */
+.sky-miko {
+  position: fixed;
+  left: var(--miko-x, 35%);
+  bottom: var(--miko-y, 6%);
+  transform: translateX(-50%);
+  transition:
+    left var(--miko-move, 2.6s) var(--ease),
+    bottom var(--miko-move, 2.6s) var(--ease),
+    opacity 0.8s var(--ease);
+  z-index: 2;
+}
+
+/* 置く姿勢のときは、手が道の側（左）へ向くように左右反転 */
+.sky-miko.is-placing img { transform: scaleX(-1); }
+
+/* 重ねて切り替えるための、もう1枚 */
+.sky-miko-alt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--miko-w, 132px);
+  max-width: 34vw;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Q7のあと、正面で受け止める場面。画面の下のほうに、少し大きめに立つ。
+   言葉は画面の下に出るので、上を見る動きは入れない。 */
+.sky-miko.is-bridge img,
+.sky-miko.is-bridge .sky-miko-alt {
+  max-width: 420px;
+}
+
+.sky-miko.is-bridge img { animation: offerBreath 7s ease-in-out infinite; }
+
+/* 最後の「眺める」画面：正面のまま、静かにひと呼吸するだけ */
+.sky-miko.is-offering img {
+  width: calc(var(--miko-w, 132px) * 1.3);
+  animation: offerBreath 7s ease-in-out infinite;
+}
+
+/* 受け止める場面のセリフは、ミコの頭の上あたりに出す */
+/* 受け止める場面のセリフは、ミコの背丈に合わせて JS が位置を決めます
+   （body.is-bridge-sky のときだけ、下からの位置を直接指定します） */
+
+@keyframes offerBreath {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(2px) scale(1.012); }
+}
+
+.sky-miko img {
+  width: var(--miko-w, 132px);
+  max-width: 34vw;
+  transition: width var(--miko-move, 2.6s) var(--ease);
+}
+
+/* ミコは跳ねない。動きは、ごく短い横のスライドだけ */
+
+body.is-final-sky .sky-message {
+  position: fixed;
+  left: 50%;
+  top: 9vh;
+  bottom: auto;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(86vw, 480px);
+  margin: 0;
+  padding: 10px 18px;
+  border-radius: 16px;
+  /* セリフが夜空や結晶に沈まないよう、うっすら帯を敷く */
+  background: rgba(10, 12, 34, 0.58);
+  border: 1px solid rgba(190, 200, 255, 0.18);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  color: #f4f5ff;
+  font-size: 1rem;
+  line-height: 1.7;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+
+/* 文字が空のときは、帯だけが残らないようにする */
+.sky-message:empty { padding: 0; border: 0; background: none; }
+
+.sky-message.is-visible { opacity: 1; }
+
+.sky-final-ui {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(92vw, 520px);
+  padding: 14px 16px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+}
+
+.sky-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+}
+
+/* ---------- まとめ画面 ---------- */
+.summary-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.summary-card {
+  margin: 0 0 16px;
+  padding: 20px 18px;
+  background: rgba(16, 20, 50, 0.92);
+  border: 1px solid var(--panel-line);
+  border-radius: 16px;
+}
+
+.summary-card .q {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.summary-card .a {
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.summary-card .divider {
+  height: 1px;
+  margin: 16px 0;
+  background: var(--panel-line);
+}
+
+/* ---------- 結晶タップ表示 ---------- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(5, 7, 24, 0.6);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.4s var(--ease);
+}
+
+.sheet.hidden { display: none; }
+
+.sheet-inner {
+  width: 100%;
+  max-width: 560px;
+  max-height: 84dvh;
+  overflow-y: auto;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  background: rgba(18, 22, 54, 0.96);
+  border: 1px solid var(--panel-line);
+  border-radius: 18px 18px 0 0;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- 小さめのスマートフォン ---------- */
+@media (max-width: 400px) {
+  .miko-main { width: 176px; }
+  .miko-stage { margin-bottom: -14px; }
+  .panel { padding: 20px 16px 24px; }
+}
+
+/* ---------- PC ---------- */
+@media (min-width: 720px) {
+  body { font-size: 17px; }
+  .screen { padding: 40px 24px; }
+  .miko-main { width: 250px; }
+  .sky-miko img { width: 160px; }
+  .sheet { align-items: center; }
+  .sheet-inner { border-radius: 18px; }
+}
+
+/* ---------- 印刷（PDF） ---------- */
+#print-root { display: none; }
+
+/* ===== 横長の画面（PC）では、夜空を中央の縦長領域に収める =====
+   条件は背景画像の縦横比（941:1672）そのもの。
+   これより縦長の画面＝スマホでは、この指定は一切効かない。
+   js/ui.js の stage() が同じ条件で座標を計算している。 */
+@media (min-aspect-ratio: 941 / 1672) {
+  .scene-image {
+    left: 50%;
+    right: auto;
+    width: calc(100vh * 941 / 1672);
+    transform: translateX(-50%);
+  }
+}
+
+
+/* PDFを持ち帰る画面 */
+.pdf-title {
+  margin: 0 0 10px;
+  font-size: 1.12rem;
+  letter-spacing: 0.04em;
+}
+
+.pdf-lead {
+  margin: 0 0 14px;
+  font-size: 0.96rem;
+  line-height: 1.8;
+}
+
+.pdf-steps {
+  margin: 0 0 6px;
+  padding-left: 1.3em;
+  text-align: left;
+  font-size: 0.94rem;
+  line-height: 1.9;
+}
+
+.pdf-steps li { margin-bottom: 6px; }
+
+/* 案内の補足は、改行をそのまま生かす */
+#pdf-after { white-space: pre-line; }
+
+
+
+@media print {
+  /* 向きは指定しない。iPhoneの印刷画面は landscape を無視するため、
+     縦で崩れない組み方に揃える。 */
+  @page { size: A4; margin: 12mm; }
+
+  html, body {
+    background: #ffffff !important;
+    color: #1a1a2e !important;
+    font-size: 10pt;
+    line-height: 1.6;
+  }
+
+  /* 画面用の層は、すべて印刷から外す。
+     .scene-image と #world は position:fixed のため、
+     隠さないと印刷本文の上に重なって文字が読めなくなる。 */
+  #sky-bg, #crystal-field, #flight-layer, #app, .sheet,
+  .scene-image, #world, #intro-preview-animation,
+  .build-badge { display: none !important; }
+
+  #print-root {
+    display: block !important;
+    color: #1a1a2e;
+  }
+
+  .print-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 10mm;
+    padding-bottom: 3mm;
+    margin-bottom: 5mm;
+    border-bottom: 1px solid #b9c0e0;
+  }
+
+  .print-header img { width: 22mm; }
+  .print-title { margin: 0; font-size: 16pt; letter-spacing: 0.06em; }
+  .print-subtitle { margin: 1mm 0 0; font-size: 9.5pt; color: #4a4f76; }
+  .print-date { margin-left: auto; font-size: 9pt; color: #4a4f76; }
+
+  /* 2段組はiPhoneの印刷で中身が欠けることがあるため、1段にする */
+  .print-grid { display: block; }
+
+  .print-item {
+    break-inside: avoid;
+    margin-bottom: 5mm;
+    padding-bottom: 3mm;
+    border-bottom: 1px dotted #c8cde6;
+  }
+
+  .print-q {
+    margin: 0 0 1.5mm;
+    font-size: 8.8pt;
+    color: #4a4f76;
+  }
+
+  .print-a {
+    margin: 0 0 2mm;
+    font-size: 10pt;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .print-reflect {
+    break-inside: avoid;
+    margin-top: 4mm;
+    padding: 3mm;
+    border: 1px solid #c8cde6;
+    border-radius: 2mm;
+  }
+
+  .print-space {
+    margin-top: 4mm;
+    padding-top: 2mm;
+    border-top: 1px dotted #c8cde6;
+    min-height: 18mm;
+    font-size: 8.5pt;
+    color: #8a8fae;
+  }
+
+  .print-footer {
+    margin-top: 4mm;
+    font-size: 8pt;
+    color: #8a8fae;
+  }
+}

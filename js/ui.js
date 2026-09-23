@@ -189,9 +189,11 @@ const UI = {
     const dx = offsetX || 0;
     const el = this.el('sky-miko');
     el.style.setProperty('--miko-move', (ms === undefined ? 2600 : ms) + 'ms');
-    el.style.setProperty('--miko-x', ((point.x + dx) / this.vw() * 100) + '%');
+    /* .sky-miko は画面に対して位置を取るので、ここだけ画面の大きさで割る
+       （point は夜空の領域のぶんだけ、すでにずらしてある） */
+    el.style.setProperty('--miko-x', ((point.x + dx) / this.screenW() * 100) + '%');
     /* 足元が道に乗るように、少しだけ持ち上げる */
-    el.style.setProperty('--miko-y', ((this.vh() - point.y) / this.vh() * 100 - 1) + '%');
+    el.style.setProperty('--miko-y', ((this.screenH() - point.y) / this.screenH() * 100 - 1) + '%');
     el.style.setProperty('--miko-w', (128 - (128 - 46) * p) + 'px');
     this.mikoProgress = p;
   },
@@ -210,7 +212,9 @@ const UI = {
   /* ことばの札が、画面からはみ出したり、重なったりしないようにする */
   layoutLabels: function () {
     const crystals = document.querySelectorAll('#crystal-field .crystal--placed');
-    const w = this.vw();
+    const st = this.stage();
+    const leftEdge = st.x;
+    const rightEdge = st.x + st.w;
     const placed = [];
 
     for (let i = 0; i < crystals.length; i++) {
@@ -221,11 +225,11 @@ const UI = {
       const cx = crystals[i].getBoundingClientRect().left + 29;
 
       /* 画面の左半分にある結晶は右へ、右半分にある結晶は左へ */
-      label.classList.toggle('crystal-label--left', cx > w * 0.5);
+      label.classList.toggle('crystal-label--left', cx > st.x + st.w * 0.5);
 
       let r = label.getBoundingClientRect();
-      if (r.right > w - 8) label.classList.add('crystal-label--left');
-      else if (r.left < 8) label.classList.remove('crystal-label--left');
+      if (r.right > rightEdge - 8) label.classList.add('crystal-label--left');
+      else if (r.left < leftEdge + 8) label.classList.remove('crystal-label--left');
 
       /* 1回目は「はみ出さない、かつ重ならない」場所を探し、
          見つからなければ2回目は「はみ出さない」ことを優先する */
@@ -240,7 +244,7 @@ const UI = {
           for (let k = 0; k < shifts.length; k++) {
             label.style.transform = shifts[k] ? 'translateY(' + shifts[k] + 'px)' : '';
             r = label.getBoundingClientRect();
-            if (r.right > w - 6 || r.left < 6) continue;
+            if (r.right > rightEdge - 6 || r.left < leftEdge + 6) continue;
 
             let hit = false;
             if (pass === 0) {
@@ -265,8 +269,40 @@ const UI = {
   zoom: 1,
 
   world: function () { return this.el('world'); },
-  vw: function () { return window.innerWidth; },
-  vh: function () { return window.innerHeight; },
+  /* 夜空を描く領域。
+     縦長の画面（スマホ）では画面いっぱい。ここは今までと1pxも変わらない。
+     横長の画面（PC）では、画面中央に背景画像と同じ縦横比の縦長領域をとる。
+     ミコ・結晶・ことばの札は、すべてこの領域を基準に置く。 */
+  stage: function () {
+    const sw = window.innerWidth;
+    const sh = window.innerHeight;
+    const ratio = BG_IMAGE_W / BG_IMAGE_H;
+
+    /* 画面が画像より縦長（＝スマホ）なら、画面いっぱいのまま */
+    if (sw <= sh * ratio) return { x: 0, y: 0, w: sw, h: sh };
+
+    const w = sh * ratio;
+    return { x: (sw - w) / 2, y: 0, w: w, h: sh };
+  },
+
+  /* 夜空の領域の大きさ（画面全体ではない） */
+  vw: function () { return this.stage().w; },
+  vh: function () { return this.stage().h; },
+
+  /* 画面そのものの大きさ。画面基準で置く要素だけが使う */
+  screenW: function () { return window.innerWidth; },
+  screenH: function () { return window.innerHeight; },
+
+  /* 夜空の座標 ←→ 領域内の割合。保存・復元に使う */
+  toStageRatio: function (point) {
+    const st = this.stage();
+    return { x: (point.x - st.x) / st.w, y: (point.y - st.y) / st.h };
+  },
+
+  fromStageRatio: function (ratio) {
+    const st = this.stage();
+    return { x: st.x + ratio.x * st.w, y: st.y + ratio.y * st.h };
+  },
 
   moveCam: function (px, ms) {
     this.cam = px;
@@ -324,14 +360,13 @@ const UI = {
   /* 背景画像は cover で表示されるので、画像の中の位置 (u,v) が
      いま画面のどこに来ているかを計算する */
   imagePoint: function (u, v) {
-    const vw = this.vw();
-    const vh = this.vh();
-    const scale = Math.max(vw / BG_IMAGE_W, vh / BG_IMAGE_H);
+    const st = this.stage();
+    const scale = Math.max(st.w / BG_IMAGE_W, st.h / BG_IMAGE_H);
     const w = BG_IMAGE_W * scale;
     const h = BG_IMAGE_H * scale;
     return {
-      x: (vw - w) / 2 + u * w,
-      y: (vh - h) / 2 + v * h
+      x: st.x + (st.w - w) / 2 + u * w,
+      y: st.y + (st.h - h) / 2 + v * h
     };
   },
 
@@ -374,18 +409,18 @@ const UI = {
   crystalPointFor: function (index) {
     const t = MIKO_STEPS[Math.max(0, Math.min(index, MIKO_STEPS.length - 1))];
     const p = this.roadPoint(t);
-    const vw = this.vw();
-    const dist = vw * CRYSTAL_SIDE_OFFSET;
+    const st = this.stage();
+    const dist = st.w * CRYSTAL_SIDE_OFFSET;
 
     /* 道に対して直角の向きのうち、画面の左側へ寄るほうを選ぶ */
     const sign = (p.nx < 0) ? 1 : -1;
     let x = p.x + p.nx * dist * sign;
     const y = p.y + p.ny * dist * sign;
 
-    x = Math.max(vw * 0.10, Math.min(vw * 0.90, x));
+    x = Math.max(st.x + st.w * 0.10, Math.min(st.x + st.w * 0.90, x));
 
-    /* ことばの札は、結晶が画面の左半分なら右へ、右半分なら左へ */
-    return { x: x, y: y, side: (x < vw * 0.5 ? 'r' : 'l') };
+    /* ことばの札は、結晶が領域の左半分なら右へ、右半分なら左へ */
+    return { x: x, y: y, side: (x < st.x + st.w * 0.5 ? 'r' : 'l') };
   },
 
   /* 小さいミコの、結晶をのせている手のあたり（置く姿勢は左右反転している） */

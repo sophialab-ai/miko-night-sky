@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>ミコと一緒に歩く夜空</title>
+<!-- アイコン（ブラウザのタブ／iPhoneのホーム画面） -->
+<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=68">
+<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=68">
+<meta name="description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
+
+<!-- ================== SNS共有（OGP） ==================
+     公開URL： https://sophialab-ai.github.io/miko-night-sky/
+     公開先を変えるときは、下の og:url / og:image / twitter:image の3か所を
+     絶対URL（https:// から始まる形）で書き換えてください。 -->
+<meta property="og:site_name" content="Sophia Labo">
+<meta property="og:title" content="ミコと一緒に歩く「自分のことば」">
+<meta property="og:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="https://sophialab-ai.github.io/miko-night-sky/">
+<meta property="og:image" content="https://sophialab-ai.github.io/miko-night-sky/assets/images/ogp-miko-night-sky.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="夜空の光の道と、結晶を持つミコ">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ミコと一緒に歩く「自分のことば」">
+<meta name="twitter:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
+<meta name="twitter:image" content="https://sophialab-ai.github.io/miko-night-sky/assets/images/ogp-miko-night-sky.jpg">
+<!-- ================================================== -->
+<link rel="stylesheet" href="styles.css?v=68">
+<!-- 導入予告アニメーション（質問が始まる前に一度だけ流す） -->
+<link rel="stylesheet" href="intro.css?v=68">
+</head>
+<body class="bg-overview is-booting">
+
+<!-- 開発用：いま読み込まれている画面の版（仮モードのときだけ出ます） -->
+<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v68</div>
+
+<!-- 夜空（背景の色。画像が出るまでの下地） -->
+<div id="sky-bg" aria-hidden="true"></div>
+
+<!-- 背景画像。body のクラスで切り替える -->
+<div class="scene-image scene-image--overview" aria-hidden="true"></div>
+<div class="scene-image scene-image--pickup" aria-hidden="true"></div>
+
+<!-- 歩いていく夜空。奥ほどゆっくり流れる -->
+<div id="world">
+  <div class="layer layer--nebula" style="--rate: 0.10; --ratey: 0.10" aria-hidden="true"></div>
+  <div class="layer layer--aurora" style="--rate: 0.13; --ratey: 0.12" aria-hidden="true">
+    <div class="aurora-inner"></div>
+  </div>
+  <div class="layer layer--band"   style="--rate: 0.16; --ratey: 0.15" aria-hidden="true"></div>
+  <div class="layer layer--moon"   style="--rate: 0.05; --ratey: 0.04" aria-hidden="true"></div>
+  <div class="layer layer--clouds" style="--rate: 0.20; --ratey: 0.18" aria-hidden="true"></div>
+  <div class="layer layer--far"    style="--rate: 0.28; --ratey: 0.26" aria-hidden="true"></div>
+  <div class="layer layer--mid"    style="--rate: 0.55; --ratey: 0.52" aria-hidden="true"></div>
+  <div class="layer layer--hills-far"  style="--rate: 0.76; --ratey: 0.80" aria-hidden="true"></div>
+  <div class="layer layer--hills-near" style="--rate: 0.94; --ratey: 1.05" aria-hidden="true"></div>
+  <div class="layer layer--town"       style="--rate: 0.94; --ratey: 1.05" aria-hidden="true"></div>
+  <!-- 光の道。月へ向かって、奥へ細くなっていく。ミコが歩く道なので上下には動かさない -->
+  <div class="layer layer--road" style="--rate: 0.18; --ratey: 0" aria-hidden="true">
+    <div class="road-glow"></div>
+    <div class="road-flow"></div>
+    <div class="road-edge"></div>
+  </div>
+
+  <!-- 夜空に残る結晶と、それをつなぐ光の線 -->
+  <div id="crystal-field" class="layer" style="--rate: 1; --ratey: 1">
+    <svg id="constellation" aria-hidden="true"></svg>
+  </div>
+</div>
+
+<!-- 移動中の結晶 -->
+<div id="flight-layer" aria-hidden="true"></div>
+
+<main id="app">
+
+  <!-- 1. 最初の説明画面 -->
+  <section id="screen-intro" class="screen is-active">
+    <div class="panel panel--text">
+      <img class="miko-small" src="assets/images/miko-main.png" alt="ミコ">
+      <p>ミコと一緒に、夜空を歩いてみませんか。</p>
+      <p>これからいくつか、あなた自身のことを聞いていきます。<br>正しい答えも、上手な答えもありません。</p>
+      <p>思いついたことを、そのまま置いていってね。</p>
+      <p>ミコは、あなたの答えを診断したり、意味を決めたりしません。<br>今日あなたから出てきた言葉を、一緒に拾っていきます。</p>
+      <p>思いつかない問いは、答えなくても大丈夫です。</p>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-intro-next">つづける</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. プライバシー説明 -->
+  <section id="screen-privacy" class="screen">
+    <div class="panel panel--text">
+      <h2 class="panel-title">あなたが書いた言葉について</h2>
+      <p>入力した内容は、運営側には送られません。<br>この体験の中で使い、最後にあなた自身のPDFとして持ち帰ることができます。</p>
+      <p>運営側に記録されるのは、<br>アクセスコードが使われたこと（日時と回数）<br>だけです。</p>
+      <p>何を書いたか、どこまで進んだかは、<br>運営側には分かりません。</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn--quiet" id="btn-privacy-back">戻る</button>
+        <button type="button" class="btn btn--primary" id="btn-privacy-next">つづける</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. スタート画面（アクセスコード） -->
+  <section id="screen-start" class="screen">
+    <div class="panel panel--text">
+      <h2 class="panel-title">アクセスコード</h2>
+      <label class="field-label" for="input-code">アクセスコード</label>
+      <input id="input-code" class="input-line" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="">
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-check-code">アクセスコードを確認</button>
+      </div>
+      <p id="code-message" class="code-message"></p>
+      <div id="start-walk-area" class="btn-row btn-row--single hidden">
+        <button type="button" class="btn btn--primary" id="btn-start-walk">ミコと歩きはじめる</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 途中再開 -->
+  <section id="screen-resume" class="screen">
+    <div class="panel panel--text">
+      <p id="resume-title">途中から歩きつづけますか？</p>
+      <p id="resume-where" class="note"></p>
+      <div class="btn-row">
+        <button type="button" class="btn btn--primary" id="btn-resume">途中から歩く</button>
+        <button type="button" class="btn btn--quiet" id="btn-fresh">新しく歩きはじめる</button>
+      </div>
+      <p class="note">「新しく歩きはじめる」を選ぶと、新しい1回がはじまります。</p>
+    </div>
+  </section>
+
+  <!-- 5. ミコとの対話画面 -->
+  <section id="screen-dialogue" class="screen">
+    <div class="dialogue-wrap">
+      <div class="miko-stage">
+        <img id="miko-img" class="miko-main" src="assets/images/miko-main.png" alt="ミコ">
+      </div>
+      <div class="panel panel--dialogue">
+        <p id="step-indicator" class="step-indicator"></p>
+        <h2 id="question-text" class="question-text"></h2>
+        <div id="hint-box" class="hint-box hidden">
+          <p id="hint-title" class="hint-title hidden"></p>
+          <ul id="hint-list" class="hint-list"></ul>
+          <p id="hint-note" class="hint-note"></p>
+        </div>
+        <textarea id="answer-input" class="answer-input" rows="4" placeholder=""></textarea>
+        <div class="btn-row">
+          <button type="button" class="btn btn--quiet" id="btn-back">戻る</button>
+          <button type="button" class="btn btn--quiet" id="btn-skip">今は思いつかない</button>
+        </div>
+        <div class="btn-row btn-row--single">
+          <button type="button" class="btn btn--primary" id="btn-submit">この言葉を置く</button>
+        </div>
+      </div>
+      <p id="miko-after-line" class="miko-after-line"></p>
+    </div>
+  </section>
+
+  <!-- 5.5 Q1の拾う場面（1画面まるごと使う） -->
+  <section id="screen-pickup" class="screen screen--pickup">
+    <img id="pickup-miko" class="pickup-miko" src="assets/images/miko-main.png" alt="ミコ">
+    <p id="pickup-line" class="pickup-line"></p>
+  </section>
+
+  <!-- 6. 夜空全体画面 -->
+  <section id="screen-sky" class="screen screen--sky">
+    <div id="sky-miko" class="sky-miko">
+      <img id="sky-miko-img" src="assets/images/miko-place.png" alt="ミコ">
+      <!-- ポーズを重ねて切り替えるための、もう1枚 -->
+      <img id="sky-miko-img2" class="sky-miko-alt" src="" alt="" aria-hidden="true">
+    </div>
+    <p id="sky-message" class="sky-message"></p>
+    <div id="sky-final-ui" class="sky-final-ui hidden">
+      <p class="sky-hint">結晶をタップすると、そのとき書いた言葉が見られます。</p>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-go-summary">拾ったことばをまとめて見る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. まとめて見る画面 -->
+  <section id="screen-summary" class="screen">
+    <div class="summary-wrap">
+      <h2 class="panel-title">今日ひろって、夜空に置いたことば</h2>
+      <div id="summary-cards"></div>
+      <div class="btn-row">
+        <button type="button" class="btn btn--quiet" id="btn-summary-back">夜空へ戻る</button>
+        <button type="button" class="btn btn--primary" id="btn-summary-next">つづける</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. 振り返り（①②共通） -->
+  <section id="screen-reflect" class="screen">
+    <div class="dialogue-wrap">
+      <div class="miko-stage">
+        <img class="miko-main" src="assets/images/miko-main.png" alt="ミコ">
+      </div>
+      <div class="panel panel--dialogue">
+        <h2 id="reflect-question" class="question-text"></h2>
+        <div id="reflect-hint" class="hint-box hidden">
+          <ul id="reflect-hint-list" class="hint-list"></ul>
+          <p class="hint-note">これは選択肢ではありません。あなたの言葉で書いてね。</p>
+        </div>
+        <textarea id="reflect-input" class="answer-input answer-input--tall" rows="6"></textarea>
+        <div class="btn-row btn-row--single">
+          <button type="button" class="btn btn--primary" id="btn-reflect-submit"></button>
+        </div>
+        <div class="btn-row btn-row--single">
+          <button type="button" class="btn btn--quiet" id="btn-reflect-skip"></button>
+        </div>
+      </div>
+      <p id="reflect-after-line" class="miko-after-line"></p>
+    </div>
+  </section>
+
+  <!-- 9. 終わりの画面 -->
+  <section id="screen-end" class="screen">
+    <div class="panel panel--text">
+      <img class="miko-small" src="assets/images/miko-main.png" alt="ミコ">
+      <p>今日の夜空は、ここまで。</p>
+      <p class="note">PDFは、あなたのブラウザの中だけで作られます。</p>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-pdf">今日のことばをPDFで持ち帰る</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-view-sky">もう一度、夜空を眺める</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-restart">もう一度、最初から歩く</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-go-feedback">体験の感想を伝える</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-forget">この端末に残っている回答を削除する</button>
+      </div>
+      <p class="note">このアプリに保存されている回答や途中経過が、この端末から削除されます。<br>そのあとはPDFを作れなくなるので、先にPDFを保存してください。</p>
+      <p id="end-message" class="code-message"></p>
+    </div>
+  </section>
+
+  <!-- PDFを持ち帰る（保存のしかたを伝える画面） -->
+  <section id="screen-pdf" class="screen">
+    <div class="panel panel--text">
+      <h2 id="pdf-title" class="pdf-title"></h2>
+      <p id="pdf-lead" class="pdf-lead"></p>
+      <ol id="pdf-steps" class="pdf-steps"></ol>
+      <p id="pdf-after" class="note"></p>
+
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-pdf-go">PDFの画面をひらく</button>
+      </div>
+      <div class="btn-row btn-row--single hidden" id="pdf-copy-row">
+        <button type="button" class="btn btn--quiet" id="btn-copy-url">このページのURLをコピー</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-pdf-back">戻る</button>
+      </div>
+
+      <p id="pdf-message" class="code-message"></p>
+    </div>
+  </section>
+
+  <!-- 10. 体験後アンケートの案内 -->
+  <section id="screen-feedback" class="screen">
+    <div class="panel panel--text">
+      <img class="miko-small" src="assets/images/miko-offer.png" alt="ミコ">
+      <h2 class="panel-title">ここまで一緒に歩いてくれて、ありがとう。</h2>
+      <p>よかったら、<br>今日の体験について少しだけ聞かせてください。</p>
+      <p>このアプリの中で書いた<br>あなたの「ことば」を答える必要はありません。</p>
+      <p>感じたことや、<br>分かりにくかったところなどを<br>教えてもらえたらうれしいです。</p>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--primary" id="btn-feedback-open">体験の感想を送る</button>
+      </div>
+      <div class="btn-row btn-row--single">
+        <button type="button" class="btn btn--quiet" id="btn-feedback-close">今日はここまでにする</button>
+      </div>
+      <p class="note">アンケートは別の画面で開きます。<br>このアプリの画面は、そのまま残ります。</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- 結晶タップ時の表示 -->
+<div id="crystal-detail" class="sheet hidden" role="dialog" aria-modal="true">
+  <div class="sheet-inner">
+    <div id="detail-body"></div>
+    <div class="btn-row btn-row--single">
+      <button type="button" class="btn btn--quiet" id="btn-detail-close">とじる</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF用（印刷のときだけ表示される） -->
+<div id="print-root" aria-hidden="true"></div>
+
+<script src="js/config.js?v=68"></script>
+<script src="js/questions.js?v=68"></script>
+<script src="js/storage.js?v=68"></script>
+<script src="js/api.js?v=68"></script>
+<script src="js/ui.js?v=68"></script>
+<script src="js/pdf.js?v=68"></script>
+<script src="js/intro.js?v=68"></script>
+<script src="app.js?v=68"></script>
+</body>
+</html>
