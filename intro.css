@@ -34,8 +34,8 @@
   opacity: 0;
 }
 
-.intro-bg--pickup   { background-image: url("./assets/images/bg-pickup-scene.png"); }
-.intro-bg--overview { background-image: url("./assets/images/bg-sky-overview.png"); }
+.intro-bg--pickup   { background-image: url("./assets/images/bg-pickup-scene.jpg"); }
+.intro-bg--overview { background-image: url("./assets/images/bg-sky-overview.jpg"); }
 
 /* ---------- ミコ ---------- */
 .intro-miko {

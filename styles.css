@@ -318,8 +318,8 @@ body.is-booting #app {
   pointer-events: none;
 }
 
-.scene-image--overview { background-image: url("./assets/images/bg-sky-overview.png"); }
-.scene-image--pickup   { background-image: url("./assets/images/bg-pickup-scene.png"); }
+.scene-image--overview { background-image: url("./assets/images/bg-sky-overview.jpg"); }
+.scene-image--pickup   { background-image: url("./assets/images/bg-pickup-scene.jpg"); }
 
 body.bg-overview .scene-image--overview { opacity: 1; }
 body.bg-pickup   .scene-image--pickup   { opacity: 1; }

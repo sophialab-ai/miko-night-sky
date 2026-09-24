@@ -91,7 +91,7 @@ const App = {
     const probe = new Image();
     probe.onload = show;
     probe.onerror = show;
-    probe.src = 'assets/images/bg-sky-overview.png';
+    probe.src = 'assets/images/bg-sky-overview.jpg';
     if (probe.complete) show();
 
     setTimeout(show, 1500);
