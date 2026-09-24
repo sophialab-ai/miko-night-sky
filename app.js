@@ -21,6 +21,7 @@ const App = {
     if (devView) UI.setHidden('build-badge', false);
 
     UI.setScene('overview');
+    this.setupBrowserNotice();
 
     const saved = Storage.load();
 
@@ -54,6 +55,27 @@ const App = {
 
     UI.el('btn-resume').textContent = done ? '前回の夜空にもどる' : '途中から歩く';
     UI.showScreen('screen-resume');
+  },
+
+  /* まだ何も書いていないうちに、ブラウザのことを伝えておく。
+     歩き終わったあとに移ると、書いたことばを置き去りにしてしまうため。 */
+  setupBrowserNotice: function () {
+    const name = this.inAppBrowserName();
+    if (!name) return;
+
+    UI.setText('browser-notice-app', name);
+    UI.setText('browser-notice-browser', this.isIOS() ? 'Safari' : 'Chrome');
+    UI.setHidden('browser-notice', false);
+  },
+
+  onNoticeCopy: function () {
+    const self = this;
+    this.copyUrl(function (ok) {
+      UI.setText('browser-notice-msg', ok
+        ? (self.isIOS() ? 'URLをコピーしました。Safariのアドレス欄に貼りつけてください。'
+                        : 'URLをコピーしました。Chromeのアドレス欄に貼りつけてください。')
+        : 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。');
+    });
   },
 
   /* 背景の絵がそろってから、画面を一度だけ表示する。
@@ -129,6 +151,7 @@ const App = {
     UI.el('btn-pdf').addEventListener('click', function () { self.onPdf(); });
     UI.el('btn-pdf-go').addEventListener('click', function () { self.onPdfGo(); });
     UI.el('btn-copy-url').addEventListener('click', function () { self.onCopyUrl(); });
+    UI.el('btn-notice-copy').addEventListener('click', function () { self.onNoticeCopy(); });
     UI.el('btn-pdf-back').addEventListener('click', function () { UI.showScreen('screen-end'); });
     UI.el('btn-view-sky').addEventListener('click', function () { self.goFinalSky(false); });
     UI.el('btn-restart').addEventListener('click', function () { self.onRestart(); });
@@ -864,9 +887,19 @@ const App = {
 
   /* アプリの中で開かれた簡易ブラウザか（Messenger・Instagram・LINEなど）。
      こうしたブラウザでは印刷が動かないことがある。 */
-  isInAppBrowser: function () {
+  /* アプリの中で開かれた簡易ブラウザか。名前まで分かれば、そのまま案内に使う */
+  inAppBrowserName: function () {
     const ua = navigator.userAgent || '';
-    return /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|MicroMessenger|Twitter/i.test(ua);
+    if (/Line\//i.test(ua)) return 'LINE';
+    if (/FBAN|FBAV|FB_IAB|Messenger/i.test(ua)) return 'Messenger';
+    if (/Instagram/i.test(ua)) return 'Instagram';
+    if (/Twitter/i.test(ua)) return 'X';
+    if (/MicroMessenger/i.test(ua)) return 'WeChat';
+    return '';
+  },
+
+  isInAppBrowser: function () {
+    return this.inAppBrowserName() !== '';
   },
 
   isIOS: function () {
@@ -896,14 +929,17 @@ const App = {
     let title, lead, steps, after;
 
     if (inApp) {
-      title = 'SafariかChromeで開いてください';
-      lead = 'このブラウザでは、PDFの保存がうまく動かないことがあります。';
+      /* ここでブラウザを移すよう案内すると、書いたことばを置き去りにしてしまう。
+         移動はすすめず、この画面のまま保存を試してもらう。 */
+      title = 'PDFを保存します';
+      lead = 'このあとPDFの画面が開きます。';
       steps = [
-        '下のボタンで、このページのURLをコピーする',
-        'SafariかChromeを開いて、URLを貼りつける',
-        'その画面で、もう一度PDFを持ち帰る'
+        'プリンターや保存先の選択から「PDFに保存」を選ぶ',
+        '保存先を選んで保存する'
       ];
-      after = 'うまくいかないときは、この画面をそのままにしておけば、あとから試せます。';
+      after = 'このブラウザでは、うまく保存できないことがあります。\n'
+            + 'そのときは、まとめ画面のスクリーンショットでも残せます。\n'
+            + '書いたことばは、このブラウザの中に7日間残ります。別のブラウザで開くと引き継げないので、このまま操作してください。';
     } else if (ios) {
       title = 'PDFを保存します';
       lead = 'このあとPDFの画面が開きます。';
@@ -941,7 +977,8 @@ const App = {
       list.appendChild(li);
     });
 
-    UI.el('pdf-copy-row').classList.toggle('hidden', !inApp);
+    /* PDF画面では、ブラウザを移すボタンは出さない（アクセスコード画面で先に案内済み） */
+    UI.el('pdf-copy-row').classList.add('hidden');
   },
 
   /* 案内を読んだうえで、PDFの画面を開く */
@@ -952,13 +989,15 @@ const App = {
     this.log('pdf_generated');
   },
 
-  onCopyUrl: function () {
+  /* URLのコピー。結果は呼び出し元へ渡す */
+  copyUrl: function (done) {
     const url = location.href.split('#')[0];
-    const done = function () { UI.setText('pdf-message', 'URLをコピーしました。SafariかChromeのアドレス欄に貼りつけてください。'); };
-    const fail = function () { UI.setText('pdf-message', 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。'); };
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(done, fail);
+      navigator.clipboard.writeText(url).then(
+        function () { done(true); },
+        function () { done(false); }
+      );
       return;
     }
     /* 古いブラウザ向けの控え */
@@ -972,10 +1011,18 @@ const App = {
       box.select();
       const ok = document.execCommand('copy');
       document.body.removeChild(box);
-      if (ok) { done(); } else { fail(); }
+      done(!!ok);
     } catch (e) {
-      fail();
+      done(false);
     }
+  },
+
+  onCopyUrl: function () {
+    this.copyUrl(function (ok) {
+      UI.setText('pdf-message', ok
+        ? 'URLをコピーしました。SafariかChromeのアドレス欄に貼りつけてください。'
+        : 'コピーできませんでした。アドレス欄のURLを長押しして選んでください。');
+    });
   },
 
   onRestart: function () {

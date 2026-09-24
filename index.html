@@ -6,8 +6,8 @@
 <meta name="format-detection" content="telephone=no">
 <title>ミコと一緒に歩く夜空</title>
 <!-- アイコン（ブラウザのタブ／iPhoneのホーム画面） -->
-<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=68">
-<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=68">
+<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=69">
+<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=69">
 <meta name="description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 
 <!-- ================== SNS共有（OGP） ==================
@@ -31,14 +31,14 @@
 <meta name="twitter:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 <meta name="twitter:image" content="https://sophialab-ai.github.io/miko-night-sky/assets/images/ogp-miko-night-sky.jpg">
 <!-- ================================================== -->
-<link rel="stylesheet" href="styles.css?v=68">
+<link rel="stylesheet" href="styles.css?v=69">
 <!-- 導入予告アニメーション（質問が始まる前に一度だけ流す） -->
-<link rel="stylesheet" href="intro.css?v=68">
+<link rel="stylesheet" href="intro.css?v=69">
 </head>
 <body class="bg-overview is-booting">
 
 <!-- 開発用：いま読み込まれている画面の版（仮モードのときだけ出ます） -->
-<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v68</div>
+<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v69</div>
 
 <!-- 夜空（背景の色。画像が出るまでの下地） -->
 <div id="sky-bg" aria-hidden="true"></div>
@@ -112,6 +112,21 @@
   <section id="screen-start" class="screen">
     <div class="panel panel--text">
       <h2 class="panel-title">アクセスコード</h2>
+
+      <!-- アプリ内ブラウザで開かれたときだけ出る。まだ何も書いていない今のうちに伝える -->
+      <div id="browser-notice" class="browser-notice hidden">
+        <p class="browser-notice__text">
+          このアプリは、<span id="browser-notice-app">アプリ</span>の中のブラウザで開かれています。<br>
+          このままでも歩けますが、最後にPDFを保存するとき、うまくいかないことがあります。<br>
+          先に<span id="browser-notice-browser">ChromeやSafari</span>で開いておくと安心です。
+        </p>
+        <div class="btn-row btn-row--single">
+          <button type="button" class="btn btn--quiet" id="btn-notice-copy">このページのURLをコピー</button>
+        </div>
+        <p id="browser-notice-msg" class="browser-notice__msg"></p>
+        <p class="note">歩きはじめたあとで別のブラウザに移ると、書いたことばは引き継げません。</p>
+      </div>
+
       <label class="field-label" for="input-code">アクセスコード</label>
       <input id="input-code" class="input-line" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="">
       <div class="btn-row btn-row--single">
@@ -303,13 +318,13 @@
 <!-- PDF用（印刷のときだけ表示される） -->
 <div id="print-root" aria-hidden="true"></div>
 
-<script src="js/config.js?v=68"></script>
-<script src="js/questions.js?v=68"></script>
-<script src="js/storage.js?v=68"></script>
-<script src="js/api.js?v=68"></script>
-<script src="js/ui.js?v=68"></script>
-<script src="js/pdf.js?v=68"></script>
-<script src="js/intro.js?v=68"></script>
-<script src="app.js?v=68"></script>
+<script src="js/config.js?v=69"></script>
+<script src="js/questions.js?v=69"></script>
+<script src="js/storage.js?v=69"></script>
+<script src="js/api.js?v=69"></script>
+<script src="js/ui.js?v=69"></script>
+<script src="js/pdf.js?v=69"></script>
+<script src="js/intro.js?v=69"></script>
+<script src="app.js?v=69"></script>
 </body>
 </html>

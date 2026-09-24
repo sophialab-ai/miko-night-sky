@@ -1025,6 +1025,32 @@ body.is-final-sky .sky-message {
 }
 
 
+/* アプリ内ブラウザのお知らせ（アクセスコード画面） */
+.browser-notice {
+  margin: 0 0 20px;
+  padding: 14px 14px 4px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+}
+
+.browser-notice__text {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.browser-notice__msg {
+  margin: 10px 0 0;
+  min-height: 1.4em;
+  color: var(--accent);
+  font-size: 0.84rem;
+}
+
+.browser-notice .note { margin-top: 12px; }
+
+
 /* PDFを持ち帰る画面 */
 .pdf-title {
   margin: 0 0 10px;
