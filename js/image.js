@@ -8,11 +8,13 @@ const ImageCard = {
   PAD: 72,          // 左右の余白
   MAX_H: 3600,      // 1枚の高さの上限（これを超えたら次の紙へ）
 
-  /* 夜空の色 */
+  /* 夜空の色。上は深い夜、下にいくほど明るい紫へ */
   COLORS: {
-    top: '#0a0e2a',
-    mid: '#1b1746',
-    bottom: '#2e2154',
+    top: '#05071c',
+    upper: '#141a4a',
+    mid: '#2b2168',
+    lower: '#4a2a72',
+    bottom: '#6b3a76',
     title: '#f4f1ff',
     dim: '#b6bce0',
     text: '#ffffff',
@@ -94,12 +96,16 @@ const ImageCard = {
     return blocks;
   },
 
-  /* 夜空の下地。星は毎回同じ位置に出るようにする */
+  /* 夜空の下地。星の位置は毎回同じになるようにする */
   paintSky: function (ctx, h) {
+    const C = this.COLORS;
+
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, this.COLORS.top);
-    g.addColorStop(0.55, this.COLORS.mid);
-    g.addColorStop(1, this.COLORS.bottom);
+    g.addColorStop(0, C.top);
+    g.addColorStop(0.22, C.upper);
+    g.addColorStop(0.55, C.mid);
+    g.addColorStop(0.82, C.lower);
+    g.addColorStop(1, C.bottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, this.W, h);
 
@@ -109,16 +115,54 @@ const ImageCard = {
       return seed / 2147483648;
     };
 
-    const count = Math.round(h / 14);
+    /* 星雲。大きくぼんやりした光を、少しだけ重ねる */
+    const clouds = [
+      { x: 0.18, y: 0.12, r: 0.52, c: '120, 132, 236', a: 0.22 },
+      { x: 0.86, y: 0.30, r: 0.46, c: '168, 118, 226', a: 0.20 },
+      { x: 0.30, y: 0.62, r: 0.50, c: '96, 122, 232', a: 0.16 },
+      { x: 0.78, y: 0.88, r: 0.44, c: '214, 138, 186', a: 0.18 }
+    ];
+    clouds.forEach(function (n) {
+      const cx = n.x * ImageCard.W;
+      const cy = n.y * h;
+      const r = n.r * ImageCard.W;
+      const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      rg.addColorStop(0, 'rgba(' + n.c + ', ' + n.a + ')');
+      rg.addColorStop(1, 'rgba(' + n.c + ', 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, ImageCard.W, h);
+    });
+
+    /* 月あかり。右上に、やわらかい光をひとつ */
+    const mx = this.W * 0.84;
+    const my = h * 0.055;
+    const mr = this.W * 0.30;
+    const mg = ctx.createRadialGradient(mx, my, 0, mx, my, mr);
+    mg.addColorStop(0, 'rgba(255, 247, 214, 0.26)');
+    mg.addColorStop(0.5, 'rgba(255, 244, 206, 0.08)');
+    mg.addColorStop(1, 'rgba(255, 244, 206, 0)');
+    ctx.fillStyle = mg;
+    ctx.fillRect(0, 0, this.W, h);
+
+    /* 星 */
+    const count = Math.round(h / 11);
     for (let i = 0; i < count; i++) {
       const x = rand() * this.W;
       const y = rand() * h;
-      const r = rand() * 1.9 + 0.5;
-      ctx.globalAlpha = 0.25 + rand() * 0.55;
+      const big = rand() > 0.94;
+      const r = big ? (rand() * 1.6 + 1.8) : (rand() * 1.6 + 0.4);
+
+      ctx.save();
+      ctx.globalAlpha = big ? (0.75 + rand() * 0.25) : (0.20 + rand() * 0.55);
       ctx.fillStyle = '#ffffff';
+      if (big) {
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+        ctx.shadowBlur = 10;
+      }
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
     ctx.globalAlpha = 1;
   },
