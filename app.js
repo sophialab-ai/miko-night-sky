@@ -161,6 +161,8 @@ const App = {
     UI.el('btn-copy-url').addEventListener('click', function () { self.onCopyUrl(); });
     UI.el('btn-notice-copy').addEventListener('click', function () { self.onNoticeCopy(); });
     UI.el('btn-pdf-back').addEventListener('click', function () { UI.showScreen('screen-end'); });
+    UI.el('btn-image').addEventListener('click', function () { self.onImage(); });
+    UI.el('btn-image-back').addEventListener('click', function () { UI.showScreen('screen-pdf'); });
     UI.el('btn-view-sky').addEventListener('click', function () { self.goFinalSky(false); });
     UI.el('btn-restart').addEventListener('click', function () { self.onRestart(); });
 
@@ -886,7 +888,7 @@ const App = {
     UI.hideMikoLine();
 
     /* 消したあとに押せてしまうボタンは、止めておく */
-    ['btn-pdf', 'btn-pdf-go', 'btn-view-sky', 'btn-restart', 'btn-forget'].forEach(function (id) {
+    ['btn-pdf', 'btn-pdf-go', 'btn-image', 'btn-view-sky', 'btn-restart', 'btn-forget'].forEach(function (id) {
       UI.el(id).disabled = true;
     });
 
@@ -944,15 +946,15 @@ const App = {
       /* LINEなどのアプリ内ブラウザには印刷の仕組みがないため、
          PDFは保存できない。あいまいに書かず、はっきり伝える。
          正式な持ち帰り方は、スクリーンショット。 */
-      title = 'スクリーンショットで残してください';
+      title = '画像として持ち帰れます';
       lead = name + 'の中ではPDFを保存できません。\n'
-           + 'まとめ画面をスクリーンショットで残してください。';
+           + 'かわりに、今日ひろったことばを画像で保存できます。';
       steps = [
-        '下の「戻る」を押す',
-        '「もう一度、夜空を眺める」を開く',
-        'スクリーンショットを撮る'
+        '「画像として保存する」を押す',
+        '出てきた画像を長押しする',
+        '「写真に追加」（Androidは「画像をダウンロード」）を選ぶ'
       ];
-      after = '1枚に収まらない場合は、何枚かに分けて残してください。';
+      after = 'ことばが多いときは、何枚かに分かれます。';
 
     } else if (ios) {
       title = 'PDFを保存します';
@@ -1006,16 +1008,56 @@ const App = {
        PDFのボタンは消さずに、控えめな見た目へ下げる。 */
     const go = UI.el('btn-pdf-go');
     const back = UI.el('btn-pdf-back');
+    const image = UI.el('btn-image');
 
+    /* アプリ内ブラウザでは画像を主に、それ以外ではPDFを主にする */
+    image.classList.toggle('btn--primary', inApp);
+    image.classList.toggle('btn--quiet', !inApp);
     go.classList.toggle('btn--primary', !inApp);
     go.classList.toggle('btn--quiet', inApp);
-    back.classList.toggle('btn--primary', inApp);
-    back.classList.toggle('btn--quiet', !inApp);
+    back.classList.add('btn--quiet');
+    back.classList.remove('btn--primary');
 
     UI.setText('pdf-sub-note', inApp
       ? '※お使いの環境によっては、PDFの画面が開けることもあります。'
       : '');
     UI.setHidden('pdf-sub-note', !inApp);
+  },
+
+  /* 画像として持ち帰る。作るのも見せるのも、この端末の中だけ */
+  onImage: function () {
+    const self = this;
+    const area = UI.el('image-area');
+
+    UI.setText('image-lead', '画像を作っています…');
+    area.innerHTML = '';
+    UI.setText('image-message', '');
+    UI.showScreen('screen-image');
+
+    ImageCard.build(this.session).then(function (pages) {
+      UI.setText('image-lead', self.isIOS()
+        ? (pages.length > 1
+            ? 'それぞれの画像を長押しして、「写真に追加」を選んでください。'
+            : '画像を長押しして、「写真に追加」を選んでください。')
+        : (pages.length > 1
+            ? 'それぞれの画像を長押しして、「画像をダウンロード」を選んでください。'
+            : '画像を長押しして、「画像をダウンロード」を選んでください。'));
+
+      pages.forEach(function (page) {
+        const img = document.createElement('img');
+        img.src = page.url;
+        img.alt = '今日ひろったことば';
+        img.className = 'saved-image';
+        area.appendChild(img);
+      });
+
+      if (pages.length > 1) {
+        UI.setText('image-message', 'ことばが多かったので、' + pages.length + '枚に分かれています。');
+      }
+    }).catch(function () {
+      UI.setText('image-lead', '画像を作れませんでした。');
+      UI.setText('image-message', 'お手数ですが、まとめ画面のスクリーンショットで残してください。');
+    });
   },
 
   /* 案内を読んだうえで、PDFの画面を開く */

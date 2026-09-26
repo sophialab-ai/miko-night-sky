@@ -1051,6 +1051,21 @@ body.is-final-sky .sky-message {
 .browser-notice .note { margin-top: 12px; }
 
 
+/* 画像で持ち帰る画面 */
+.image-area {
+  margin: 4px 0 14px;
+}
+
+.saved-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-line);
+}
+
+
 /* 開始前の小さな案内と、PDF画面の補足 */
 .pdf-hint {
   margin: 14px 0 0;
