@@ -1075,6 +1075,8 @@ body.is-final-sky .sky-message {
 .pdf-steps li { margin-bottom: 6px; }
 
 /* 案内の補足は、改行をそのまま生かす */
+/* 案内文は、改行をそのまま生かす */
+#pdf-lead,
 #pdf-after { white-space: pre-line; }
 
 
