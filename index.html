@@ -6,8 +6,8 @@
 <meta name="format-detection" content="telephone=no">
 <title>ミコと一緒に歩く夜空</title>
 <!-- アイコン（ブラウザのタブ／iPhoneのホーム画面） -->
-<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=72">
-<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=72">
+<link rel="icon" type="image/png" href="assets/images/icon-miko-night-sky.png?v=73">
+<link rel="apple-touch-icon" href="assets/images/icon-miko-night-sky.png?v=73">
 <meta name="description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 
 <!-- ================== SNS共有（OGP） ==================
@@ -31,14 +31,14 @@
 <meta name="twitter:description" content="夜空を歩きながら、自分の言葉をそっと拾う体験アプリ。">
 <meta name="twitter:image" content="https://sophialab-ai.github.io/miko-night-sky/assets/images/ogp-miko-night-sky.jpg">
 <!-- ================================================== -->
-<link rel="stylesheet" href="styles.css?v=72">
+<link rel="stylesheet" href="styles.css?v=73">
 <!-- 導入予告アニメーション（質問が始まる前に一度だけ流す） -->
-<link rel="stylesheet" href="intro.css?v=72">
+<link rel="stylesheet" href="intro.css?v=73">
 </head>
 <body class="bg-overview is-booting">
 
 <!-- 開発用：いま読み込まれている画面の版（仮モードのときだけ出ます） -->
-<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v72</div>
+<div id="build-badge" class="build-badge hidden">公開前仕上げ版 v73</div>
 
 <!-- 夜空（背景の色。画像が出るまでの下地） -->
 <div id="sky-bg" aria-hidden="true"></div>
@@ -117,14 +117,17 @@
       <div id="browser-notice" class="browser-notice hidden">
         <p class="browser-notice__text">
           このアプリは、<span id="browser-notice-app">アプリ</span>の中のブラウザで開かれています。<br>
-          このままでも歩けますが、最後にPDFを保存するとき、うまくいかないことがあります。<br>
-          先に<span id="browser-notice-browser">ChromeやSafari</span>で開いておくと安心です。
+          <strong><span id="browser-notice-app2">アプリ</span>の中では、最後にPDFを保存することができません。</strong><br>
+          今日ひろったことばをPDFで持ち帰りたい方は、歩きはじめる前にSafariまたはChromeで開いてください。
         </p>
         <div class="btn-row btn-row--single">
           <button type="button" class="btn btn--quiet" id="btn-notice-copy">このページのURLをコピー</button>
         </div>
         <p id="browser-notice-msg" class="browser-notice__msg"></p>
-        <p class="note">歩きはじめたあとで別のブラウザに移ると、書いたことばは引き継げません。</p>
+        <p class="note">
+          途中から別のブラウザに移ると、書いたことばは引き継がれません。<br>
+          PDFが不要な場合は、このまま<span id="browser-notice-app3">アプリ</span>の中で体験できます。
+        </p>
       </div>
 
       <label class="field-label" for="input-code">アクセスコード</label>
@@ -132,6 +135,7 @@
       <div class="btn-row btn-row--single">
         <button type="button" class="btn btn--primary" id="btn-check-code">アクセスコードを確認</button>
       </div>
+      <p id="pdf-hint" class="pdf-hint hidden">最後に、今日ひろったことばをPDFで持ち帰れます。</p>
       <p id="code-message" class="code-message"></p>
       <div id="start-walk-area" class="btn-row btn-row--single hidden">
         <button type="button" class="btn btn--primary" id="btn-start-walk">ミコと歩きはじめる</button>
@@ -274,6 +278,7 @@
       <div class="btn-row btn-row--single">
         <button type="button" class="btn btn--primary" id="btn-pdf-go">PDFの画面をひらく</button>
       </div>
+      <p id="pdf-sub-note" class="pdf-sub-note hidden"></p>
       <div class="btn-row btn-row--single hidden" id="pdf-copy-row">
         <button type="button" class="btn btn--quiet" id="btn-copy-url">このページのURLをコピー</button>
       </div>
@@ -318,13 +323,13 @@
 <!-- PDF用（印刷のときだけ表示される） -->
 <div id="print-root" aria-hidden="true"></div>
 
-<script src="js/config.js?v=72"></script>
-<script src="js/questions.js?v=72"></script>
-<script src="js/storage.js?v=72"></script>
-<script src="js/api.js?v=72"></script>
-<script src="js/ui.js?v=72"></script>
-<script src="js/pdf.js?v=72"></script>
-<script src="js/intro.js?v=72"></script>
-<script src="app.js?v=72"></script>
+<script src="js/config.js?v=73"></script>
+<script src="js/questions.js?v=73"></script>
+<script src="js/storage.js?v=73"></script>
+<script src="js/api.js?v=73"></script>
+<script src="js/ui.js?v=73"></script>
+<script src="js/pdf.js?v=73"></script>
+<script src="js/intro.js?v=73"></script>
+<script src="app.js?v=73"></script>
 </body>
 </html>

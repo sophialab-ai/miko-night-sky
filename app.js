@@ -61,10 +61,19 @@ const App = {
      歩き終わったあとに移ると、書いたことばを置き去りにしてしまうため。 */
   setupBrowserNotice: function () {
     const name = this.inAppBrowserName();
-    if (!name) return;
+
+    if (!name) {
+      /* 通常のブラウザ。終わりに何があるかだけ、小さく伝えておく */
+      UI.setHidden('pdf-hint', false);
+      return;
+    }
+
+    /* アプリ内ブラウザでは「PDFで持ち帰れます」は出さない（保存できないため） */
+    UI.setHidden('pdf-hint', true);
 
     UI.setText('browser-notice-app', name);
-    UI.setText('browser-notice-browser', this.isIOS() ? 'Safari' : 'Chrome');
+    UI.setText('browser-notice-app2', name);
+    UI.setText('browser-notice-app3', name);
     UI.setHidden('browser-notice', false);
   },
 
@@ -922,7 +931,8 @@ const App = {
 
   /* 端末に合わせて、案内画面の中身を作る */
   buildPdfGuide: function () {
-    const inApp = this.isInAppBrowser();
+    const name = this.inAppBrowserName();
+    const inApp = name !== '';
     const ios = this.isIOS();
     const android = this.isAndroid();
 
@@ -932,16 +942,18 @@ const App = {
        書いたことばを置き去りにしてしまうので、移動はすすめない。
        手順は端末ごとに違うので、iPhoneとAndroidで分ける。 */
     if (inApp) {
-      title = 'PDFを保存します';
-      lead = 'このブラウザでは保存画面が開かないことがあります。\n'
-           + 'まず試してみて、何も起きない場合は戻って、まとめ画面をスクリーンショットで残してください。';
-
-      steps = ios
-        ? ['画面の共有ボタン（□に↑）を押す', '「ファイルに保存」を選ぶ']
-        : ['送信先（プリンター）の選択から「PDF に保存」を選ぶ', '保存先を選んで保存する'];
-
-      after = '書いたことばは、このブラウザの中に7日間残ります。\n'
-            + '別のブラウザで開くと引き継げないので、このまま操作してください。';
+      /* LINEなどのアプリ内ブラウザには印刷の仕組みがないため、
+         PDFは保存できない。あいまいに書かず、はっきり伝える。
+         正式な持ち帰り方は、スクリーンショット。 */
+      title = 'スクリーンショットで残してください';
+      lead = name + 'の中ではPDFを保存できません。\n'
+           + 'まとめ画面をスクリーンショットで残してください。';
+      steps = [
+        '下の「戻る」を押す',
+        '「もう一度、夜空を眺める」を開く',
+        'スクリーンショットを撮る'
+      ];
+      after = '1枚に収まらない場合は、何枚かに分けて残してください。';
 
     } else if (ios) {
       title = 'PDFを保存します';
@@ -990,6 +1002,21 @@ const App = {
 
     /* PDF画面では、ブラウザを移すボタンは出さない（アクセスコード画面で先に案内済み） */
     UI.el('pdf-copy-row').classList.add('hidden');
+
+    /* アプリ内ブラウザでは、主導線をスクリーンショットにする。
+       PDFのボタンは消さずに、控えめな見た目へ下げる。 */
+    const go = UI.el('btn-pdf-go');
+    const back = UI.el('btn-pdf-back');
+
+    go.classList.toggle('btn--primary', !inApp);
+    go.classList.toggle('btn--quiet', inApp);
+    back.classList.toggle('btn--primary', inApp);
+    back.classList.toggle('btn--quiet', !inApp);
+
+    UI.setText('pdf-sub-note', inApp
+      ? '※お使いの環境によっては、PDFの画面が開けることもあります。'
+      : '');
+    UI.setHidden('pdf-sub-note', !inApp);
   },
 
   /* 案内を読んだうえで、PDFの画面を開く */

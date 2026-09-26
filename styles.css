@@ -1051,6 +1051,23 @@ body.is-final-sky .sky-message {
 .browser-notice .note { margin-top: 12px; }
 
 
+/* 開始前の小さな案内と、PDF画面の補足 */
+.pdf-hint {
+  margin: 14px 0 0;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.pdf-sub-note {
+  margin: 4px 0 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  text-align: left;
+}
+
+
 /* PDFを持ち帰る画面 */
 .pdf-title {
   margin: 0 0 10px;
