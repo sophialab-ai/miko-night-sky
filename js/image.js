@@ -167,75 +167,45 @@ const ImageCard = {
     ctx.globalAlpha = 1;
   },
 
-  /* 結晶をつなぐ光の道。置いたことばが、ひとつながりに見えるように */
-  drawRoad: function (ctx, dots, headerH, h) {
-    if (dots.length === 0) return;
+  BAND: 560,   // 上に敷く夜空の写真の高さ
 
-    const x = dots[0].x;
-    const pts = [{ x: x, y: headerH - 26 }]
-      .concat(dots)
-      .concat([{ x: x, y: h - 132 }]);
+  /* 上部に、アプリで歩いた夜空の写真を敷く。
+     その上にミコと見出しを重ね、下は描いた夜空へなじませる。 */
+  drawHeader: function (ctx, bg, miko, dateText, pageText) {
+    const BH = this.BAND;
 
-    ctx.save();
-    ctx.lineCap = 'round';
-
-    /* 外側のにじんだ光 */
-    ctx.strokeStyle = 'rgba(255, 228, 166, 0.30)';
-    ctx.lineWidth = 7;
-    ctx.shadowColor = 'rgba(255, 224, 158, 0.85)';
-    ctx.shadowBlur = 20;
-    this.strokeRoad(ctx, pts);
-
-    /* 内側の細い芯 */
-    ctx.strokeStyle = 'rgba(255, 246, 214, 0.55)';
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 8;
-    this.strokeRoad(ctx, pts);
-
-    ctx.restore();
-  },
-
-  /* 点のあいだを、少し左右に揺らしながらつなぐ */
-  strokeRoad: function (ctx, pts) {
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-
-    for (let i = 1; i < pts.length; i++) {
-      const prev = pts[i - 1];
-      const cur = pts[i];
-      const midY = (prev.y + cur.y) / 2;
-      const sway = (i % 2 === 0) ? 18 : -30;
-      ctx.quadraticCurveTo(prev.x + sway, midY, cur.x, cur.y);
+    if (bg) {
+      /* 写真の上のほう（月のあたり）を、帯の形に切り取って使う */
+      const sw = bg.naturalWidth;
+      const sh = Math.min(bg.naturalHeight, sw * BH / this.W);
+      ctx.drawImage(bg, 0, 0, sw, sh, 0, 0, this.W, BH);
     }
-    ctx.stroke();
-  },
 
-  drawHeader: function (ctx, miko, dateText, pageText) {
-    const P = this.PAD;
+    /* 帯の下側を、本文の夜空の色へ溶かす */
+    const fade = ctx.createLinearGradient(0, BH - 240, 0, BH);
+    fade.addColorStop(0, 'rgba(5, 7, 28, 0)');
+    fade.addColorStop(1, this.COLORS.upper);
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, BH - 240, this.W, 240);
 
     if (miko) {
       const w = 150;
       const h = w * (miko.naturalHeight / miko.naturalWidth);
-      ctx.drawImage(miko, P, 54, w, h);
+      ctx.drawImage(miko, this.PAD, BH - h - 132, w, h);
     }
+
+    const x = this.PAD + 180;
 
     ctx.fillStyle = this.COLORS.title;
     ctx.font = this.font('bold', 46);
-    ctx.fillText('ミコと一緒に歩いた夜空', P + 180, 112);
+    ctx.fillText('ミコと一緒に歩いた夜空', x, BH - 128);
 
     ctx.fillStyle = this.COLORS.dim;
     ctx.font = this.font('normal', 26);
-    ctx.fillText('今日ひろって、夜空に置いたことば', P + 180, 154);
-    ctx.fillText(dateText + (pageText ? '　' + pageText : ''), P + 180, 194);
+    ctx.fillText('今日ひろって、夜空に置いたことば', x, BH - 88);
+    ctx.fillText(dateText + (pageText ? '　' + pageText : ''), x, BH - 48);
 
-    ctx.strokeStyle = this.COLORS.line;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(P, 236);
-    ctx.lineTo(this.W - P, 236);
-    ctx.stroke();
-
-    return 300;
+    return BH + 48;
   },
 
   drawFooter: function (ctx, h) {
@@ -292,12 +262,12 @@ const ImageCard = {
     return y + block.height;
   },
 
-  loadMiko: function () {
+  loadImage: function (src) {
     return new Promise(function (resolve) {
       const img = new Image();
       img.onload = function () { resolve(img); };
       img.onerror = function () { resolve(null); };
-      img.src = 'assets/images/miko-main.png';
+      img.src = src;
     });
   },
 
@@ -305,12 +275,17 @@ const ImageCard = {
   build: function (session) {
     const self = this;
 
-    return this.loadMiko().then(function (miko) {
+    return Promise.all([
+      this.loadImage('assets/images/miko-main.png'),
+      this.loadImage('assets/images/bg-sky-overview.jpg')
+    ]).then(function (loaded) {
+      const miko = loaded[0];
+      const bg = loaded[1];
       const measure = document.createElement('canvas').getContext('2d');
       const blocks = self.buildBlocks(measure, session);
 
       const today = Pdf.formatDate(new Date());
-      const headerH = 300;
+      const headerH = self.BAND + 48;
       const footerH = 140;
       const budget = self.MAX_H - headerH - footerH;
 
@@ -343,19 +318,8 @@ const ImageCard = {
 
         self.paintSky(ctx, h);
 
-        /* 結晶がどこに来るかを先に調べて、そこを通る道を描く */
-        const dots = [];
-        let scanY = headerH;
-        pageBlocks.forEach(function (b) {
-          if (b.kind === 'answer') {
-            dots.push({ x: self.PAD + 14, y: scanY + b.size - 11 });
-          }
-          scanY += b.height;
-        });
-        self.drawRoad(ctx, dots, headerH, h);
-
         const pageText = (pages.length > 1) ? ((index + 1) + ' / ' + pages.length) : '';
-        let y = self.drawHeader(ctx, miko, today.jp, pageText);
+        let y = self.drawHeader(ctx, bg, miko, today.jp, pageText);
 
         pageBlocks.forEach(function (b) { y = self.drawBlock(ctx, b, y); });
 
