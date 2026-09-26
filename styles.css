@@ -769,6 +769,8 @@ body.is-final-sky .layer--road { opacity: 0.35; transition: opacity 1.2s var(--e
   letter-spacing: 0.08em;
 }
 
+#image-message { white-space: pre-line; }
+
 .code-message {
   margin: 14px 0 0;
   min-height: 1.6em;

@@ -306,7 +306,7 @@ const ImageCard = {
       if (current.length > 0) pages.push(current);
 
       /* 1枚ずつ描く */
-      return pages.map(function (pageBlocks, index) {
+      return Promise.all(pages.map(function (pageBlocks, index) {
         const contentH = pageBlocks.reduce(function (a, b) { return a + b.height; }, 0);
         const h = Math.max(900, headerH + contentH + footerH);
 
@@ -325,11 +325,28 @@ const ImageCard = {
 
         self.drawFooter(ctx, h);
 
-        return {
-          url: canvas.toDataURL('image/jpeg', 0.92),
-          name: 'miko-night-sky-' + today.iso + (pages.length > 1 ? '-' + (index + 1) : '') + '.jpg'
-        };
-      });
+        const name = 'miko-night-sky-' + today.iso
+          + (pages.length > 1 ? '-' + (index + 1) : '') + '.jpg';
+
+        /* 表示用のURLと、共有シートに渡すためのファイルを両方そろえる */
+        return new Promise(function (resolve) {
+          const url = canvas.toDataURL('image/jpeg', 0.92);
+
+          if (!canvas.toBlob) {
+            resolve({ url: url, name: name, file: null });
+            return;
+          }
+          canvas.toBlob(function (blob) {
+            let file = null;
+            try {
+              if (blob && window.File) file = new File([blob], name, { type: 'image/jpeg' });
+            } catch (e) {
+              file = null;
+            }
+            resolve({ url: url, name: name, file: file });
+          }, 'image/jpeg', 0.92);
+        });
+      }));
     });
   }
 };

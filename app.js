@@ -951,8 +951,8 @@ const App = {
            + 'かわりに、今日ひろったことばを画像で保存できます。';
       steps = [
         '「画像として保存する」を押す',
-        '出てきた画像を長押しする',
-        '「写真に保存」（Androidは「画像をダウンロード」）を選ぶ'
+        '出てきた画像の下の「この画像を保存する」を押す',
+        '表示される案内にしたがって保存する'
       ];
       after = 'ことばが多いときは、何枚かに分かれます。';
 
@@ -1035,13 +1035,9 @@ const App = {
     UI.showScreen('screen-image');
 
     ImageCard.build(this.session).then(function (pages) {
-      UI.setText('image-lead', self.isIOS()
-        ? (pages.length > 1
-            ? 'それぞれの画像を長押しして、「写真に保存」を選んでください。'
-            : '画像を長押しして、「写真に保存」を選んでください。')
-        : (pages.length > 1
-            ? 'それぞれの画像を長押しして、「画像をダウンロード」を選んでください。'
-            : '画像を長押しして、「画像をダウンロード」を選んでください。'));
+      UI.setText('image-lead', pages.length > 1
+        ? 'それぞれの画像の下にある「この画像を保存する」を押してください。'
+        : '下の「この画像を保存する」を押してください。');
 
       pages.forEach(function (page) {
         const img = document.createElement('img');
@@ -1049,6 +1045,17 @@ const App = {
         img.alt = '今日ひろったことば';
         img.className = 'saved-image';
         area.appendChild(img);
+
+        /* 長押しが効かないブラウザ（Android版LINEなど）のための保存ボタン */
+        const row = document.createElement('div');
+        row.className = 'btn-row btn-row--single';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn--primary';
+        btn.textContent = 'この画像を保存する';
+        btn.addEventListener('click', function () { self.saveImage(page); });
+        row.appendChild(btn);
+        area.appendChild(row);
       });
 
       if (pages.length > 1) {
@@ -1058,6 +1065,46 @@ const App = {
       UI.setText('image-lead', '画像を作れませんでした。');
       UI.setText('image-message', 'お手数ですが、まとめ画面のスクリーンショットで残してください。');
     });
+  },
+
+  /* 画像を保存する。
+     端末の共有メニューが使えればそれを開き、駄目ならダウンロードする。
+     どちらも端末の中で完結し、外へは送らない。 */
+  saveImage: function (page) {
+    const self = this;
+
+    if (page.file && navigator.canShare && navigator.share) {
+      let ok = false;
+      try { ok = navigator.canShare({ files: [page.file] }); } catch (e) { ok = false; }
+
+      if (ok) {
+        navigator.share({ files: [page.file] })
+          .then(function () {
+            UI.setText('image-message', '保存または共有しました。');
+          })
+          .catch(function () {
+            /* 利用者が閉じた場合もここへ来るので、静かに次の手を案内する */
+            self.downloadImage(page);
+          });
+        return;
+      }
+    }
+
+    this.downloadImage(page);
+  },
+
+  downloadImage: function (page) {
+    try {
+      const a = document.createElement('a');
+      a.href = page.url;
+      a.download = page.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      UI.setText('image-message', '保存されない場合は、画像を長押ししてみてください。\nそれでも駄目なときは、端末のスクリーンショットで残してください。');
+    } catch (e) {
+      UI.setText('image-message', 'このブラウザでは保存できないようです。端末のスクリーンショットで残してください。');
+    }
   },
 
   /* 案内を読んだうえで、PDFの画面を開く */
