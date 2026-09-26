@@ -167,6 +167,49 @@ const ImageCard = {
     ctx.globalAlpha = 1;
   },
 
+  /* 結晶をつなぐ光の道。置いたことばが、ひとつながりに見えるように */
+  drawRoad: function (ctx, dots, headerH, h) {
+    if (dots.length === 0) return;
+
+    const x = dots[0].x;
+    const pts = [{ x: x, y: headerH - 26 }]
+      .concat(dots)
+      .concat([{ x: x, y: h - 132 }]);
+
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    /* 外側のにじんだ光 */
+    ctx.strokeStyle = 'rgba(255, 228, 166, 0.30)';
+    ctx.lineWidth = 7;
+    ctx.shadowColor = 'rgba(255, 224, 158, 0.85)';
+    ctx.shadowBlur = 20;
+    this.strokeRoad(ctx, pts);
+
+    /* 内側の細い芯 */
+    ctx.strokeStyle = 'rgba(255, 246, 214, 0.55)';
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 8;
+    this.strokeRoad(ctx, pts);
+
+    ctx.restore();
+  },
+
+  /* 点のあいだを、少し左右に揺らしながらつなぐ */
+  strokeRoad: function (ctx, pts) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1];
+      const cur = pts[i];
+      const midY = (prev.y + cur.y) / 2;
+      const sway = (i % 2 === 0) ? 18 : -30;
+      ctx.quadraticCurveTo(prev.x + sway, midY, cur.x, cur.y);
+    }
+    ctx.stroke();
+  },
+
   drawHeader: function (ctx, miko, dateText, pageText) {
     const P = this.PAD;
 
@@ -299,6 +342,17 @@ const ImageCard = {
         ctx.textBaseline = 'alphabetic';
 
         self.paintSky(ctx, h);
+
+        /* 結晶がどこに来るかを先に調べて、そこを通る道を描く */
+        const dots = [];
+        let scanY = headerH;
+        pageBlocks.forEach(function (b) {
+          if (b.kind === 'answer') {
+            dots.push({ x: self.PAD + 14, y: scanY + b.size - 11 });
+          }
+          scanY += b.height;
+        });
+        self.drawRoad(ctx, dots, headerH, h);
 
         const pageText = (pages.length > 1) ? ((index + 1) + ' / ' + pages.length) : '';
         let y = self.drawHeader(ctx, miko, today.jp, pageText);
