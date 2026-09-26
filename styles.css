@@ -1027,6 +1027,24 @@ body.is-final-sky .sky-message {
 }
 
 
+/* 絵の案内（Androidのアプリ内ブラウザのみ） */
+.notice-guide {
+  margin-top: 14px;
+}
+
+.notice-guide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--panel-line);
+}
+
+.notice-guide .note {
+  margin-top: 8px;
+  text-align: center;
+}
+
 /* アプリ内ブラウザのお知らせ（アクセスコード画面） */
 .browser-notice {
   margin: 0 0 20px;

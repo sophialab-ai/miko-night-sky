@@ -74,6 +74,13 @@ const App = {
     UI.setText('browser-notice-app', name);
     UI.setText('browser-notice-app3', name);
     UI.setHidden('browser-notice', false);
+
+    /* Androidのアプリ内ブラウザは保存ができないので、
+       絵の案内もあわせて出す。画像はこのときだけ読み込む。 */
+    if (this.isAndroid()) {
+      UI.el('notice-guide-img').src = 'assets/images/guide-android.jpg';
+      UI.setHidden('notice-guide', false);
+    }
   },
 
   onNoticeCopy: function () {
