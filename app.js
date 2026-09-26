@@ -919,6 +919,13 @@ const App = {
     return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
   },
 
+  /* この環境で、画像をファイルとして保存できるか。
+     Android版のアプリ内ブラウザは、共有もダウンロードも長押しも
+     塞がれていることが実機で確認できたため、できない扱いにする。 */
+  canSaveImage: function () {
+    return !(this.isInAppBrowser() && this.isAndroid());
+  },
+
   isAndroid: function () {
     return /Android/i.test(navigator.userAgent || '');
   },
@@ -946,15 +953,31 @@ const App = {
       /* LINEなどのアプリ内ブラウザには印刷の仕組みがないため、
          PDFは保存できない。あいまいに書かず、はっきり伝える。
          正式な持ち帰り方は、スクリーンショット。 */
-      title = '画像として持ち帰れます';
-      lead = name + 'の中ではPDFを保存できません。\n'
-           + 'かわりに、今日ひろったことばを画像で保存できます。';
-      steps = [
-        '「画像として保存する」を押す',
-        '出てきた画像の下の「この画像を保存する」を押す',
-        '表示される案内にしたがって保存する'
-      ];
-      after = 'ことばが多いときは、何枚かに分かれます。';
+      if (android) {
+        /* Android版のアプリ内ブラウザは、保存の手段がない */
+        title = 'スクリーンショットで残してください';
+        lead = name + 'の中では、PDFも画像も保存できません。\n'
+             + '今日ひろったことばを1枚にまとめて表示しますので、'
+             + '画面のスクリーンショットで残してください。';
+        steps = [
+          '「ことばを表示する」を押す',
+          '出てきた画面のスクリーンショットを撮る',
+          '画面に収まらないときは、少しずつずらして何枚か撮る'
+        ];
+        after = 'ファイルとして保存したい場合は、Chromeで開き直してください。\n'
+              + 'ただし、いま書いたことばは引き継げないため、'
+              + 'あらためて歩いていただくことになります。';
+      } else {
+        title = '画像として持ち帰れます';
+        lead = name + 'の中ではPDFを保存できません。\n'
+             + 'かわりに、今日ひろったことばを画像で保存できます。';
+        steps = [
+          '「画像として保存する」を押す',
+          '出てきた画像の下の「この画像を保存する」を押す',
+          '押せないときは、画像を長押しして「写真に保存」を選ぶ'
+        ];
+        after = 'ことばが多いときは、何枚かに分かれます。';
+      }
 
     } else if (ios) {
       title = 'PDFを保存します';
@@ -1010,6 +1033,8 @@ const App = {
     const back = UI.el('btn-pdf-back');
     const image = UI.el('btn-image');
 
+    image.textContent = this.canSaveImage() ? '画像として保存する' : 'ことばを表示する';
+
     /* アプリ内ブラウザでは画像を主に、それ以外ではPDFを主にする */
     image.classList.toggle('btn--primary', inApp);
     image.classList.toggle('btn--quiet', !inApp);
@@ -1035,9 +1060,15 @@ const App = {
     UI.showScreen('screen-image');
 
     ImageCard.build(this.session).then(function (pages) {
-      UI.setText('image-lead', pages.length > 1
-        ? 'それぞれの画像の下にある「この画像を保存する」を押してください。'
-        : '下の「この画像を保存する」を押してください。');
+      const canSave = self.canSaveImage();
+
+      UI.setText('image-title', canSave ? '画像を保存してください' : 'スクリーンショットで残してください');
+
+      UI.setText('image-lead', canSave
+        ? (pages.length > 1
+            ? 'それぞれの画像の下にある「この画像を保存する」を押してください。'
+            : '下の「この画像を保存する」を押してください。')
+        : 'このブラウザでは保存ができません。\nこの画面のスクリーンショットで残してください。');
 
       pages.forEach(function (page) {
         const img = document.createElement('img');
@@ -1046,7 +1077,9 @@ const App = {
         img.className = 'saved-image';
         area.appendChild(img);
 
-        /* 長押しが効かないブラウザ（Android版LINEなど）のための保存ボタン */
+        /* 保存できない環境では、押しても何も起きないボタンは出さない */
+        if (!canSave) return;
+
         const row = document.createElement('div');
         row.className = 'btn-row btn-row--single';
         const btn = document.createElement('button');
@@ -1060,6 +1093,8 @@ const App = {
 
       if (pages.length > 1) {
         UI.setText('image-message', 'ことばが多かったので、' + pages.length + '枚に分かれています。');
+      } else if (!canSave) {
+        UI.setText('image-message', '画面に収まらないときは、少しずつずらして何枚か撮ってください。');
       }
     }).catch(function () {
       UI.setText('image-lead', '画像を作れませんでした。');
