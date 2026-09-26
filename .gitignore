@@ -1,0 +1,22 @@
+# macOSが作るファイル
+.DS_Store
+**/.DS_Store
+
+# 手元だけで使うもの（公開しません）
+*.command
+gas/
+
+# 画像の制作素材（公開するのは縮小版だけ）
+assets/images/ogp-miko-night-sky.png
+assets/images/ogp-miko-night-sky_original.png
+assets/images/icon-miko-night-sky_original.png
+assets/images/bg-sky-overview.png
+assets/images/bg-pickup-scene.png
+assets/images/_original/
+
+# エディタ・一時ファイル
+.vscode/
+.idea/
+*.log
+*.tmp
+*~
