@@ -72,7 +72,6 @@ const App = {
     UI.setHidden('pdf-hint', true);
 
     UI.setText('browser-notice-app', name);
-    UI.setText('browser-notice-app2', name);
     UI.setText('browser-notice-app3', name);
     UI.setHidden('browser-notice', false);
   },
